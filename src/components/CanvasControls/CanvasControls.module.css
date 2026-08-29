@@ -1,0 +1,94 @@
+input[type=number]::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+}
+
+/* Coluna flutuante que empilha os painéis */
+.sidebar {
+  position: absolute;
+  top: 16px;
+  right: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  max-width: 280px;
+  width: 100%;
+  z-index: 10;
+  pointer-events: auto;
+}
+
+.controlPanel {
+  background-color: rgba(30, 30, 36, 0.9);
+  border: 1px solid #444444;
+  border-radius: 6px;
+  padding: 12px;
+  color: #ffffff;
+}
+
+.title {
+  font-size: 0.9rem;
+  font-weight: 600;
+  border-bottom: 1px solid #3a3a44;
+  padding-bottom: 6px;
+  margin-bottom: 10px;
+}
+
+.controlGroup {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.inputRow {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 6px;
+}
+
+.inputLabel {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 0.8rem;
+  color: #cccccc;
+}
+
+.numberInput {
+  width: 70px;
+  background-color: #121216;
+  border: 1px solid #555555;
+  border-radius: 4px;
+  color: #ffffff;
+  padding: 3px 6px;
+  font-size: 0.8rem;
+  text-align: right;
+}
+
+.numberInput:focus {
+  outline: 1px solid #3498db;
+}
+
+.label {
+  font-size: 0.8rem;
+  color: #cccccc;
+  display: flex;
+  justify-content: space-between;
+}
+
+.slider {
+  width: 100%;
+  cursor: pointer;
+}
+
+.stats {
+  font-size: 0.75rem;
+  color: #888888;
+}
+
+.instructionList {
+  font-size: 0.75rem;
+  color: #bbbbbb;
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
