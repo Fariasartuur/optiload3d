@@ -1,29 +1,62 @@
-import * as THREE from 'three';
+import { Mesh } from 'three';
 import BoxItem from './BoxItem';
+import { useEffect } from 'react';
+import { edgesGeo } from '../utils/edgesGeo';
 
 const Truck = ({ 
-    width = 2.4, 
-    height = 2.6, 
-    depth = 6.0, 
-    boxes = [],
-    cutoffY = height
+    id,
+    truckInfo,
+    selectedTruckId,
+    setSelectedTruckId,
+    selectedBoxId,
+    setSelectedBoxId
 }) => {
-    const posY = height / 2;
+    const isSelected = selectedTruckId === id;
 
-    const originX = -width / 2;
-    const originY = -height / 2;
-    const originZ = -depth / 2;
+    useEffect(() => {
+        if (!isSelected) {
+            setSelectedBoxId(null);
+        }
+    }, [isSelected]);
+
+    const handleTruckClick = (e) => {
+        e.stopPropagation();
+        setSelectedTruckId(id);
+    };
+
+    const PADDING = 0.02;
+
+    const realW = truckInfo?.width || 1;
+    const realH = truckInfo?.height || 1;
+    const realD = truckInfo?.depth || 1;
+
+    const visualW = realW + PADDING;
+    const visualH = realH + PADDING;
+    const visualD = realD + PADDING;
+
+    const posY = realH / 2;
+
+    const originX = -realW / 2;
+    const originY = -realH / 2;
+    const originZ = -realD / 2;
 
     const outlineOffset = 0.002;
 
-    const visibleBoxes = boxes.filter((box) => box.y < cutoffY);
+    const cutoffY = typeof truckInfo?.cutoffY === 'number' 
+        ? truckInfo.cutoffY 
+        : (truckInfo?.height || 1);
+
+    const visibleBoxes = (truckInfo?.boxes || []).filter((box) => box.y < cutoffY);
 
     return (
-        <group position={[0, posY, 0]}>
-            <mesh>
-                <boxGeometry args={[width, height, depth]} />
+        <group position={[truckInfo?.position?.x || 0, posY, truckInfo?.position?.z || 0]}>
+            <mesh
+                onClick={handleTruckClick}
+                raycast={isSelected ? () => null : Mesh.prototype.raycast}
+            >
+                <boxGeometry args={[visualW, visualH, visualD]} />
                 <meshBasicMaterial 
-                    color="#2c3e50" 
+                    color={isSelected ? "#3498db" : "#2c3e50"} 
                     transparent={true} 
                     opacity={0.15} 
                     depthWrite={false}
@@ -33,27 +66,25 @@ const Truck = ({
                 />
             </mesh>
 
-            <lineSegments>
-                <edgesGeometry args={[new THREE.BoxGeometry(width + outlineOffset, height + outlineOffset, depth + outlineOffset)]} />
-                <lineBasicMaterial color="#ffffff" />
+            <lineSegments raycast={() => null}>
+                <edgesGeometry args={[edgesGeo(visualW + outlineOffset, visualH + outlineOffset, visualD + outlineOffset)]} />
+                <lineBasicMaterial color={isSelected ? "#00ffff" : "#ffffff"} linewidth={isSelected ? 2 : 1} />
             </lineSegments>
 
             <group position={[originX, originY, originZ]}>
                 {visibleBoxes.map((box) => (
                     <BoxItem
                         key={box.id}
-                        width={box.width}
-                        height={box.height}
-                        depth={box.depth}
-                        x={box.x}
-                        y={box.y}
-                        z={box.z}
-                        color={box.color}
+                        box={box}
+                        isTruckSelected={isSelected}
+                        selectedBoxId={selectedBoxId}
+                        setSelectedBoxId={setSelectedBoxId}
+                        onSelectTruck={handleTruckClick}
                     />
                 ))}
             </group>
         </group>
-    )
-}
+    );
+};
 
 export default Truck;

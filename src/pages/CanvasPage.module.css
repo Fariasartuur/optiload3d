@@ -4,6 +4,7 @@
     position: relative;
     overflow: hidden;
     background-color: #1e1e24;
+    position: relative;
 }
 
 .canvasContainer {
@@ -23,4 +24,28 @@
     padding: 12px;
     color: #ffffff;
     font-size: 0.5rem;
+}
+
+.floatingButton {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: absolute;
+    bottom: 16px;
+    left: 16px;
+    z-index: 10;
+}
+
+.floatingButton button {
+    background-color: #1e1e24;
+    border: 1px solid #444444;
+    border-radius: 50%;
+    padding: 8px;
+    color: #ffffff;
+    font-size: 0.5rem;
+    cursor: pointer;
+}
+
+.floatingButton button:hover {
+    background-color: #2e2e34;
 }
