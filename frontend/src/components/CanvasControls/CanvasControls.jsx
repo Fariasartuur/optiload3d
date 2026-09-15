@@ -19,7 +19,7 @@ const CanvasControls = ({
     deleteTruck
 }) => {
     const [showAddBoxModal, setShowAddBoxModal] = useState(false);
-
+    const [isOptimizing, setIsOptimizing] = useState(false);
     const maxH = truckInfo?.height || 1;
 
     const currentCutoffY = typeof truckInfo?.cutoffY === 'number'
@@ -73,6 +73,47 @@ const CanvasControls = ({
         setSelectedBoxId(null);
     };
 
+    const handleOptimizeLoad = async () => {
+        if (!truckInfo || !truckInfo.boxes || truckInfo.boxes.length === 0) return;
+        
+        setIsOptimizing(true);
+        try {
+            const response = await fetch('http://localhost:8000/api/optimize', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    truck_w: truckInfo.width,
+                    truck_h: truckInfo.height,
+                    truck_d: truckInfo.depth,
+                    boxes: truckInfo.boxes.map(b => ({
+                        id: b.id,
+                        width: b.width,
+                        height: b.height,
+                        depth: b.depth,
+                        color: b.color
+                    }))
+                })
+            });
+
+            if (!response.ok) throw new Error('Falha na comunicação com o backend');
+            
+            const data = await response.json();
+            
+            setTruckInfo(prev => ({
+                ...prev,
+                boxes: data.packed_boxes
+            }));
+            
+            setSelectedBoxId(null);
+
+        } catch (error) {
+            console.error("Erro na otimização:", error);
+            alert("Ocorreu um erro ao calcular a organização das caixas.");
+        } finally {
+            setIsOptimizing(false);
+        }
+    };
+
     return (
         <>
             <aside className={styles.sidebar}>
@@ -98,6 +139,26 @@ const CanvasControls = ({
                                 </button>
                             </div>
                         </Panel>
+
+                        <Panel title="Otimização de Espaço">
+                            <button 
+                                onClick={handleOptimizeLoad}
+                                disabled={isOptimizing || totalBoxes === 0}
+                                style={{ 
+                                    width: '100%', 
+                                    padding: '10px 0', 
+                                    backgroundColor: isOptimizing ? '#7f8c8d' : '#2ecc71', 
+                                    color: 'white', 
+                                    border: 'none', 
+                                    borderRadius: '4px', 
+                                    cursor: isOptimizing || totalBoxes === 0 ? 'not-allowed' : 'pointer', 
+                                    fontWeight: 'bold',
+                                    transition: '0.2s ease-in-out'
+                                }}
+                            >
+                                {isOptimizing ? 'Processando Algoritmo...' : 'Organizar Carga (Auto-Pack)'}
+                            </button>
+                        </Panel>    
 
                         <Panel title="Dimensões do Baú (m)">
                             <div className={styles.inputRow}>
