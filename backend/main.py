@@ -130,7 +130,7 @@ def check_overlap(cx, cy, cz, w, h, d, placed_boxes):
             return True
     return False
 
-def solve_single_bin(J, W, H, D, time_limit=5.0): # Timeout de 5 segundos
+def solve_single_bin(J, W, H, D, time_limit=4.0): # Timeout de 4 segundos
     best_F = 0
     best_I = []
     
