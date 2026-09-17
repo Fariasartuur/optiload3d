@@ -182,6 +182,14 @@ def solve_single_bin(J, W, H, D, time_limit=4.0): # Timeout de 4 segundos
     bb([], J_sorted)
     return best_F, best_I
 
+@app.get("/api")
+def health_check():
+    return {
+        "status": "online",
+        "message": "Backend FastAPI rodando na Vercel!",
+        "rotas_disponiveis": ["POST /api/optimize"]
+    }
+
 @app.post("/api/optimize")
 def optimize_load(req: OptimizeRequest):
     algo_boxes = [Box(b.id, b.width, b.height, b.depth) for b in req.boxes]
