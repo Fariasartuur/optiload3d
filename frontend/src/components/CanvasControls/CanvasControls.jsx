@@ -95,7 +95,7 @@ const CanvasControls = ({
                 })
             });
 
-            if (!response.ok) throw new Error('Falha na comunicação com o backend');
+            if (!response.ok) throw new Error('Falha na comunicação com o backend.');
             
             const data = await response.json();
             
