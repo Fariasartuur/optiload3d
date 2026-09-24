@@ -2,9 +2,9 @@ import styles from './AddBoxModal.module.css';
 import { useState } from 'react';
 
 const DEFAULT_FORM = {
-    width: 0.5,
-    height: 0.5,
-    depth: 0.5,
+    width: 1,
+    height: 1,
+    depth: 1,
     x: 0,
     y: 0,
     z: 0,

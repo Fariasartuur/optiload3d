@@ -2,8 +2,9 @@ import { Mesh } from 'three';
 import BoxItem from './BoxItem';
 import { useEffect } from 'react';
 import { edgesGeo } from '../utils/edgesGeo';
+import StyledContainer from './StyledContainer';
 
-const Truck = ({ 
+const Truck = ({
     id,
     truckInfo,
     selectedTruckId,
@@ -12,6 +13,7 @@ const Truck = ({
     setSelectedBoxId
 }) => {
     const isSelected = selectedTruckId === id;
+    const isStyled = !!truckInfo?.isStyled;
 
     useEffect(() => {
         if (!isSelected) {
@@ -42,23 +44,24 @@ const Truck = ({
 
     const outlineOffset = 0.002;
 
-    const cutoffY = typeof truckInfo?.cutoffY === 'number' 
-        ? truckInfo.cutoffY 
+    const cutoffY = typeof truckInfo?.cutoffY === 'number'
+        ? truckInfo.cutoffY
         : (truckInfo?.height || 1);
 
     const visibleBoxes = (truckInfo?.boxes || []).filter((box) => box.y < cutoffY);
 
     return (
         <group position={[truckInfo?.position?.x || 0, posY, truckInfo?.position?.z || 0]}>
+            {/* Container - SEMPRE o mesmo, independente de isStyled */}
             <mesh
                 onClick={handleTruckClick}
                 raycast={isSelected ? () => null : Mesh.prototype.raycast}
             >
                 <boxGeometry args={[visualW, visualH, visualD]} />
-                <meshBasicMaterial 
-                    color={isSelected ? "#3498db" : "#2c3e50"} 
-                    transparent={true} 
-                    opacity={0.15} 
+                <meshStandardMaterial
+                    color={isSelected ? "#3498db" : "#2c3e50"}
+                    transparent={true}
+                    opacity={0.15}
                     depthWrite={false}
                     polygonOffset={true}
                     polygonOffsetFactor={1}
@@ -70,6 +73,17 @@ const Truck = ({
                 <edgesGeometry args={[edgesGeo(visualW + outlineOffset, visualH + outlineOffset, visualD + outlineOffset)]} />
                 <lineBasicMaterial color={isSelected ? "#00ffff" : "#ffffff"} linewidth={isSelected ? 2 : 1} />
             </lineSegments>
+
+            {/* Decoração do container - molduras, cantos, ondulações - só aparece se isStyled */}
+            <group visible={isStyled}>
+                <StyledContainer
+                    visualW={visualW}
+                    visualH={visualH}
+                    visualD={visualD}
+                    isSelected={isSelected}
+                    color={truckInfo?.styleColor}
+                />
+            </group>
 
             <group position={[originX, originY, originZ]}>
                 {visibleBoxes.map((box) => (

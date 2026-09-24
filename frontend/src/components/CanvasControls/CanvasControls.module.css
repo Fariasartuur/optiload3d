@@ -12,36 +12,69 @@ input[type=number]::-webkit-inner-spin-button {
   gap: 12px;
   max-width: 280px;
   width: 100%;
+  max-height: calc(100vh - 32px);
+  overflow-y: auto;
+  overflow-x: hidden;
   z-index: 10;
   pointer-events: auto;
+  padding-right: 4px;
+}
+
+.sidebar::-webkit-scrollbar {
+  width: 6px;
+}
+
+.sidebar::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.sidebar::-webkit-scrollbar-thumb {
+  background-color: rgba(255, 255, 255, 0.15);
+  border-radius: 3px;
+}
+
+.sidebar::-webkit-scrollbar-thumb:hover {
+  background-color: rgba(255, 255, 255, 0.25);
 }
 
 .controlPanel {
-  background-color: rgba(30, 30, 36, 0.9);
-  border: 1px solid #444444;
-  border-radius: 6px;
-  padding: 12px;
+  background-color: rgba(28, 28, 34, 0.6);
+  backdrop-filter: blur(16px) saturate(160%);
+  -webkit-backdrop-filter: blur(16px) saturate(160%);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 12px;
+  padding: 14px 16px;
   color: #ffffff;
+  box-shadow:
+    0 8px 24px rgba(0, 0, 0, 0.35),
+    inset 0 1px 0 rgba(255, 255, 255, 0.06);
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.controlPanel:hover {
+  border-color: rgba(255, 255, 255, 0.14);
 }
 
 .title {
-  font-size: 0.9rem;
+  font-size: 0.85rem;
   font-weight: 600;
-  border-bottom: 1px solid #3a3a44;
-  padding-bottom: 6px;
-  margin-bottom: 10px;
+  letter-spacing: 0.02em;
+  color: #f0f0f0;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+  padding-bottom: 8px;
+  margin-bottom: 12px;
 }
 
 .controlGroup {
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  gap: 10px;
 }
 
 .inputRow {
   display: grid;
   grid-template-columns: 1fr;
-  gap: 6px;
+  gap: 8px;
 }
 
 .inputLabel {
@@ -49,27 +82,30 @@ input[type=number]::-webkit-inner-spin-button {
   justify-content: space-between;
   align-items: center;
   font-size: 0.8rem;
-  color: #cccccc;
+  color: #b8b8c0;
 }
 
 .numberInput {
   width: 70px;
-  background-color: #121216;
-  border: 1px solid #555555;
-  border-radius: 4px;
+  background-color: rgba(0, 0, 0, 0.3);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 6px;
   color: #ffffff;
-  padding: 3px 6px;
+  padding: 4px 8px;
   font-size: 0.8rem;
   text-align: right;
+  transition: border-color 0.15s ease, background-color 0.15s ease;
 }
 
 .numberInput:focus {
-  outline: 1px solid #3498db;
+  outline: none;
+  border-color: #3498db;
+  background-color: rgba(0, 0, 0, 0.45);
 }
 
 .label {
   font-size: 0.8rem;
-  color: #cccccc;
+  color: #b8b8c0;
   display: flex;
   justify-content: space-between;
   align-items: center;
@@ -78,11 +114,13 @@ input[type=number]::-webkit-inner-spin-button {
 .slider {
   width: 100%;
   cursor: pointer;
+  accent-color: #3498db;
 }
 
 .stats {
   font-size: 0.75rem;
   color: #888888;
+  line-height: 1.5;
 }
 
 .instructionList {
@@ -95,29 +133,111 @@ input[type=number]::-webkit-inner-spin-button {
 }
 
 .deleteButton {
-  background-color: #e74c3c;
-  border: none;
-  border-radius: 4px;
-  color: #ffffff;
+  background-color: rgba(231, 76, 60, 0.15);
+  border: 1px solid rgba(231, 76, 60, 0.4);
+  border-radius: 6px;
+  color: #ff6b5b;
   padding: 6px 12px;
   font-size: 0.8rem;
+  font-weight: 500;
   cursor: pointer;
+  transition: background-color 0.15s ease, border-color 0.15s ease;
 }
 
 .deleteButton:hover {
-  background-color: #c0392b;
+  background-color: rgba(231, 76, 60, 0.28);
+  border-color: rgba(231, 76, 60, 0.6);
 }
 
 .addButton {
-  background-color: #2ecc71;
-  border: none;
-  border-radius: 4px;
-  color: #ffffff;
+  background-color: rgba(46, 204, 113, 0.15);
+  border: 1px solid rgba(46, 204, 113, 0.4);
+  border-radius: 6px;
+  color: #4ee08a;
   padding: 6px 12px;
   font-size: 0.8rem;
+  font-weight: 500;
   cursor: pointer;
+  transition: background-color 0.15s ease, border-color 0.15s ease;
 }
 
 .addButton:hover {
-  background-color: #27ae60;
+  background-color: rgba(46, 204, 113, 0.28);
+  border-color: rgba(46, 204, 113, 0.6);
+}
+
+.optimizeButton {
+  width: 100%;
+  padding: 10px 0;
+  background-color: rgba(46, 204, 113, 0.18);
+  border: 1px solid rgba(46, 204, 113, 0.45);
+  border-radius: 8px;
+  color: #4ee08a;
+  font-weight: 600;
+  font-size: 0.85rem;
+  cursor: pointer;
+  transition: background-color 0.2s ease, border-color 0.2s ease, opacity 0.2s ease;
+}
+
+.optimizeButton:hover:not(:disabled) {
+  background-color: rgba(46, 204, 113, 0.3);
+  border-color: rgba(46, 204, 113, 0.65);
+}
+
+.optimizeButton:disabled {
+  background-color: rgba(127, 140, 141, 0.15);
+  border-color: rgba(127, 140, 141, 0.3);
+  color: #9aa0a0;
+  cursor: not-allowed;
+}
+
+.toggleButton {
+  background-color: rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 6px;
+  color: #cccccc;
+  padding: 6px 12px;
+  font-size: 0.8rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background-color 0.15s ease, border-color 0.15s ease;
+}
+
+.toggleButton:hover {
+  background-color: rgba(255, 255, 255, 0.14);
+}
+
+.toggleActive {
+  background-color: rgba(52, 152, 219, 0.2);
+  border: 1px solid rgba(52, 152, 219, 0.5);
+  border-radius: 6px;
+  color: #6ab8e8;
+  padding: 6px 12px;
+  font-size: 0.8rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background-color 0.15s ease, border-color 0.15s ease;
+}
+
+.toggleActive:hover {
+  background-color: rgba(52, 152, 219, 0.3);
+}
+
+.colorInput {
+  width: 36px;
+  height: 26px;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 6px;
+  background: transparent;
+  cursor: pointer;
+  padding: 2px;
+}
+
+.colorInput::-webkit-color-swatch-wrapper {
+  padding: 0;
+}
+
+.colorInput::-webkit-color-swatch {
+  border: none;
+  border-radius: 4px;
 }

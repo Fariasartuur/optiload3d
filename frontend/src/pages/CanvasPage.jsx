@@ -1,8 +1,8 @@
 import { useState } from 'react'
 import { Canvas } from '@react-three/fiber'
-import { OrbitControls } from '@react-three/drei'
+import { OrbitControls, Grid } from '@react-three/drei'
 
-import Truck from '../components/Truck'
+import Container from '../components/Container'
 import CanvasControls from '../components/CanvasControls/CanvasControls'
 import AddTruckModal from '../components/Modal/Truck/AddTruckModal'
 
@@ -33,14 +33,59 @@ const CanvasPage = () => {
         );
     };
 
+    const toggleTruckStyle = () => {
+        handleUpdateTruck(prev => ({
+            ...prev,
+            isStyled: !prev.isStyled
+        }));
+    };
+
     const handleDeleteTruck = (idToDelete) => {
         const targetId = idToDelete || selectedTruckId;
+
         if (!targetId) return;
 
-        const confirmed = window.confirm('Tem certeza que deseja excluir este caminhão?');
+        const confirmed = window.confirm(
+            'Tem certeza que deseja excluir este caminhão?'
+        );
+
         if (!confirmed) return;
 
-        setTrucks(prevTrucks => prevTrucks.filter(truck => truck.id !== targetId));
+        setTrucks(prevTrucks => {
+            const remainingTrucks = prevTrucks.filter(
+                truck => truck.id !== targetId
+            );
+
+            if (remainingTrucks.length === 0) {
+                return [];
+            }
+
+            const gap = 2;
+
+            const totalWidth =
+                remainingTrucks.reduce(
+                    (acc, truck) => acc + truck.width,
+                    0
+                ) +
+                gap * (remainingTrucks.length - 1);
+
+            let cursor = -totalWidth / 2;
+
+            return remainingTrucks.map(truck => {
+                const x = cursor + truck.width / 2;
+
+                cursor += truck.width + gap;
+
+                return {
+                    ...truck,
+                    position: {
+                        x,
+                        y: 0,
+                        z: 0
+                    }
+                };
+            });
+        });
 
         if (selectedTruckId === targetId) {
             setSelectedTruckId(null);
@@ -68,16 +113,18 @@ const CanvasPage = () => {
     };
 
     const handleAddTruck = (newTruck) => {
+        const truckWithDefaults = { styleColor: "#2980b9", ...newTruck };
+
         setTrucks(prevTrucks => {
-            const positions = calculateTruckPosition(prevTrucks, newTruck);
+            const positions = calculateTruckPosition(prevTrucks, truckWithDefaults);
 
             if (prevTrucks.length === 0) {
-                return [{ ...newTruck, position: positions }];
+                return [{ ...truckWithDefaults, position: positions }];
             }
 
             const positionMap = Object.fromEntries(positions.map(p => [p.id, p.position]));
 
-            return [...prevTrucks, newTruck].map(truck => ({
+            return [...prevTrucks, truckWithDefaults].map(truck => ({
                 ...truck,
                 position: positionMap[truck.id]
             }));
@@ -113,16 +160,42 @@ const CanvasPage = () => {
                     deleteTruck={handleDeleteTruck}
                     cutoffY={cutoffY}
                     setCutoffY={setCutoffY}
+                    onToggleStyle={toggleTruckStyle}
                 />
 
                 <div id="canvas-container" className={styles.canvasContainer}>
                     <Canvas camera={{ position: [15, 15, 15], fov: 50 }} onPointerMissed={() => setSelectedTruckId(null)}>
                         <OrbitControls />
 
-                        <gridHelper args={[gridSize, gridSize, '#ffffff', '#333333']} position={[0, -0.002, 0]} />
+                        <ambientLight intensity={0.6} />
+                        <directionalLight
+                            position={[15, 20, 10]}
+                            intensity={1.2}
+                            castShadow
+                            shadow-mapSize-width={2048}
+                            shadow-mapSize-height={2048}
+                            shadow-camera-left={-30}
+                            shadow-camera-right={30}
+                            shadow-camera-top={30}
+                            shadow-camera-bottom={-30}
+                        />
+
+                        <Grid
+                            args={[gridSize, gridSize]}
+                            position={[0, -0.002, 0]}
+                            cellSize={1}
+                            cellThickness={0.5}
+                            cellColor="#333333"
+                            sectionSize={5}
+                            sectionThickness={1}
+                            sectionColor="#555555"
+                            fadeDistance={gridSize * 1.5}
+                            fadeStrength={1}
+                            infiniteGrid={false}
+                        />
 
                         {trucks.map((truck) => (
-                            <Truck
+                            <Container
                                 key={truck.id}
                                 id={truck.id}
                                 truckInfo={truck}

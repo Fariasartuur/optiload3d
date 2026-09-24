@@ -1,10 +1,12 @@
 import * as THREE from 'three';
-import { edgesGeo } from '../utils/edgesGeo';
+import { RoundedBox } from '@react-three/drei';
+import { useRef } from 'react';
+import { useFrame } from '@react-three/fiber';
 
 const BoxItem = ({
-    box, 
-    isTruckSelected, 
-    selectedBoxId, 
+    box,
+    isTruckSelected,
+    selectedBoxId,
     setSelectedBoxId,
     onSelectTruck
 }) => {
@@ -40,17 +42,33 @@ const BoxItem = ({
         return `#${color.getHexString()}`;
     }
 
+    const materialRef = useRef();
+
+    useFrame(() => {
+        if (!materialRef.current) return;
+        const target = isBoxSelected ? 0.6 : 0;
+        materialRef.current.emissiveIntensity += (target - materialRef.current.emissiveIntensity) * 0.20;
+    });
+
     return (
         <group position={[centerX, centerY, centerZ]}>
-            <mesh onClick={handleClick}>
-                <boxGeometry args={[visualWidth, visualHeight, visualDepth]} />
-                <meshBasicMaterial color={isBoxSelected ? getSelectedColor(box.color) : box.color} />
-            </mesh>
-
-            <lineSegments raycast={() => null}>
-                <edgesGeometry args={[edgesGeo(visualWidth, visualHeight, visualDepth)]} />
-                <lineBasicMaterial color="#111111" />
-            </lineSegments>
+            <RoundedBox
+                args={[visualWidth, visualHeight, visualDepth]}
+                radius={Math.min(visualWidth, visualHeight, visualDepth) * 0.06}
+                smoothness={2}
+                onClick={handleClick}
+                castShadow
+                receiveShadow
+            >
+                <meshStandardMaterial 
+                    ref={materialRef}
+                    color={box.color} 
+                    emissive={box.color}
+                    emissiveIntensity={0}
+                    roughness={0.6}
+                    metalness={0.1}
+                />
+            </RoundedBox>
         </group>
     )
 }

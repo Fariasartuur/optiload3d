@@ -10,13 +10,14 @@ const Panel = ({ title, children }) => (
     </div>
 );
 
-const CanvasControls = ({ 
+const CanvasControls = ({
     truckInfo,
-    selectedTruckId, 
+    selectedTruckId,
     selectedBoxId,
-    setTruckInfo, 
+    setTruckInfo,
     setSelectedBoxId,
-    deleteTruck
+    deleteTruck,
+    onToggleStyle
 }) => {
     const [showAddBoxModal, setShowAddBoxModal] = useState(false);
     const [isOptimizing, setIsOptimizing] = useState(false);
@@ -75,7 +76,7 @@ const CanvasControls = ({
 
     const handleOptimizeLoad = async () => {
         if (!truckInfo || !truckInfo.boxes || truckInfo.boxes.length === 0) return;
-        
+
         setIsOptimizing(true);
         try {
             const response = await fetch('/api/optimize', {
@@ -96,14 +97,14 @@ const CanvasControls = ({
             });
 
             if (!response.ok) throw new Error('Falha na comunicação com o backend.');
-            
+
             const data = await response.json();
-            
+
             setTruckInfo(prev => ({
                 ...prev,
                 boxes: data.packed_boxes
             }));
-            
+
             setSelectedBoxId(null);
 
         } catch (error) {
@@ -120,6 +121,24 @@ const CanvasControls = ({
                 {selectedTruckId && truckInfo ? (
                     <>
                         <Panel title={"Caminhão Selecionado: " + truckInfo?.name}>
+                            <div className={styles.label}>
+                                <span>Cor do Container:</span>
+                                <input
+                                    type="color"
+                                    value={truckInfo?.styleColor || "#2980b9"}
+                                    onChange={(e) => setTruckInfo(prev => ({ ...prev, styleColor: e.target.value }))}
+                                    className={styles.colorInput}
+                                />
+                            </div>
+                            <div className={styles.label}>
+                                <span>Visual Detalhado:</span>
+                                <button
+                                    className={truckInfo?.isStyled ? styles.toggleActive : styles.toggleButton}
+                                    onClick={onToggleStyle}
+                                >
+                                    {truckInfo?.isStyled ? 'Ativado' : 'Desativado'}
+                                </button>
+                            </div>
                             <div className={styles.label}>
                                 <span>Adicionar Caixa:</span>
                                 <button
@@ -141,24 +160,14 @@ const CanvasControls = ({
                         </Panel>
 
                         <Panel title="Otimização de Espaço">
-                            <button 
+                            <button
                                 onClick={handleOptimizeLoad}
                                 disabled={isOptimizing || totalBoxes === 0}
-                                style={{ 
-                                    width: '100%', 
-                                    padding: '10px 0', 
-                                    backgroundColor: isOptimizing ? '#7f8c8d' : '#2ecc71', 
-                                    color: 'white', 
-                                    border: 'none', 
-                                    borderRadius: '4px', 
-                                    cursor: isOptimizing || totalBoxes === 0 ? 'not-allowed' : 'pointer', 
-                                    fontWeight: 'bold',
-                                    transition: '0.2s ease-in-out'
-                                }}
+                                className={styles.optimizeButton}
                             >
                                 {isOptimizing ? 'Processando Algoritmo...' : 'Organizar Carga (Auto-Pack)'}
                             </button>
-                        </Panel>    
+                        </Panel>
 
                         <Panel title="Dimensões do Baú (m)">
                             <div className={styles.inputRow}>
