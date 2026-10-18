@@ -10,6 +10,13 @@ const Panel = ({ title, children }) => (
     </div>
 );
 
+const maneuverLabels = {
+    braking: 'frenagem (rumo ao fundo)', rearward: 'aceleração (rumo à porta)',
+    left_turn: 'curva (rumo a +X)', right_turn: 'curva (rumo a −X)',
+    braking_left: 'frenagem e curva (+X)', braking_right: 'frenagem e curva (−X)',
+    rearward_left: 'aceleração e curva (+X)', rearward_right: 'aceleração e curva (−X)'
+};
+
 const CanvasControls = ({
     truckInfo,
     selectedTruckId,
@@ -40,6 +47,7 @@ const CanvasControls = ({
 
             return {
                 ...prev,
+                transportAssessment: null,
                 [field]: num,
                 cutoffY: field === 'height' && prevCutoff > num ? num : prevCutoff
             };
@@ -59,6 +67,7 @@ const CanvasControls = ({
     const handleAddBoxes = (newBoxes) => {
         setTruckInfo(prev => ({
             ...prev,
+            transportAssessment: null,
             boxes: [...(prev?.boxes || []), ...newBoxes]
         }));
     };
@@ -69,6 +78,7 @@ const CanvasControls = ({
 
         setTruckInfo(prev => ({
             ...prev,
+            transportAssessment: null,
             boxes: (prev?.boxes || []).filter(b => b.id !== boxId)
         }));
         setSelectedBoxId(null);
@@ -91,7 +101,11 @@ const CanvasControls = ({
                         width: b.width,
                         height: b.height,
                         depth: b.depth,
-                        color: b.color
+                        color: b.color,
+                        weight: b.weight || 10,               // NOVO: Envia o peso para o Python
+                        delivery_order: b.delivery_order || 1,
+                        max_load: b.max_load ?? null,
+                        allow_rotation: b.allow_rotation ?? true
                     }))
                 })
             });
@@ -102,7 +116,10 @@ const CanvasControls = ({
 
             setTruckInfo(prev => ({
                 ...prev,
-                boxes: data.packed_boxes
+                boxes: data.packed_boxes,
+                transportAssessment: data.transport_assessment,
+                staticStability: data.static_stability,
+                unpackedCount: data.unpacked_boxes?.length || 0
             }));
 
             setSelectedBoxId(null);
@@ -168,6 +185,58 @@ const CanvasControls = ({
                                 {isOptimizing ? 'Processando Algoritmo...' : 'Organizar Carga (Auto-Pack)'}
                             </button>
                         </Panel>
+
+                        {truckInfo.transportAssessment && (
+                            <Panel title="Freadas e curvas">
+                                <div className={styles.transportReport} role="status">
+                                    <strong>
+                                        {truckInfo.transportAssessment.requires_restraint
+                                            ? `${truckInfo.transportAssessment.initial_affected_box_ids?.length ?? truckInfo.transportAssessment.affected_box_ids.length} caixa(s) com alerta nas manobras iniciais`
+                                            : 'Nenhum risco detectado nas hipóteses do modelo'}
+                                    </strong>
+                                    {truckInfo.staticStability?.validated && <p>Equilíbrio estático validado, com base integralmente apoiada.
+                                        Os alertas abaixo dependem das acelerações e do atrito presumidos.</p>}
+                                    <p>Tombamento estimado: {truckInfo.transportAssessment.initial_tipping_box_ids?.length ?? '—'} caixa(s).
+                                        {' '}Deslizamento estimado: {truckInfo.transportAssessment.initial_sliding_box_ids?.length ?? '—'} caixa(s).
+                                        Uma caixa pode aparecer nos dois grupos.</p>
+                                    <p>Frenagem: {truckInfo.transportAssessment.assumptions.braking_g}g;
+                                        curvas: {truckInfo.transportAssessment.assumptions.lateral_g}g;
+                                        aceleração: {truckInfo.transportAssessment.assumptions.rearward_g}g.
+                                        Atrito presumido piso/caixas: {truckInfo.transportAssessment.assumptions.floor_friction}
+                                        /{truckInfo.transportAssessment.assumptions.box_friction}.
+                                        {truckInfo.transportAssessment.assumptions.combined_maneuvers && ' Inclui manobras combinadas.'}</p>
+                                    <p>Após entregas: {truckInfo.transportAssessment.after_delivery_affected_box_ids?.length || 0} caixa(s)
+                                        com risco em algum trecho. A retirada de vizinhos pode remover o apoio.</p>
+                                    <p>{truckInfo.transportAssessment.assumptions.rigid_walls
+                                        ? 'Considera paredes rígidas e contatos contínuos entre caixas, somente no sentido apoiado.'
+                                        : 'Apoio das paredes desativado.'}
+                                        {' '}{truckInfo.transportAssessment.assumptions.rear_door_closed ? 'Porta fechada.' : 'Sem apoio da porta.'}
+                                        {' '}Resistência das paredes e embalagens não verificada; cintas não presumidas.</p>
+                                    {truckInfo.unpackedCount > 0 && <p>{truckInfo.unpackedCount} caixas ficaram fora da carga.</p>}
+                                    {truckInfo.transportAssessment.issues.length > 0 && (
+                                        <details>
+                                            <summary>Ver pontos que precisam de amarração</summary>
+                                            <ul>
+                                                {truckInfo.transportAssessment.issues.map(issue => (
+                                                    <li key={`${issue.box_id}-${issue.after_delivery ?? 'initial'}`}>
+                                                        <button type="button" className={styles.toggleButton}
+                                                            onClick={() => setSelectedBoxId(issue.box_id)}>
+                                                            Selecionar {issue.box_id}
+                                                        </button>
+                                                        <p>Apoio: {issue.support_id === 'floor' ? 'piso' : issue.support_id}.
+                                                            {issue.after_delivery != null ? ` Após a entrega ${issue.after_delivery}.` : ' Na saída.'}
+                                                            {issue.cases.some(c => c.sliding) && ' Risco de deslizamento.'}
+                                                            {issue.cases.some(c => c.tipping) && ' Risco de tombamento.'}
+                                                            {' '}Afeta {issue.affected_box_ids.length} caixa(s) nesta pilha.</p>
+                                                        <p>Manobras com risco: {issue.cases.map(c => maneuverLabels[c.scenario] || c.scenario).join('; ')}.</p>
+                                                    </li>
+                                                ))}
+                                            </ul>
+                                        </details>
+                                    )}
+                                </div>
+                            </Panel>
+                        )}
 
                         <Panel title="Dimensões do Baú (m)">
                             <div className={styles.inputRow}>

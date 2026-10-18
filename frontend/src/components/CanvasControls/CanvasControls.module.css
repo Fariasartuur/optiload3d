@@ -241,3 +241,20 @@ input[type=number]::-webkit-inner-spin-button {
   border: none;
   border-radius: 4px;
 }
+
+.transportReport {
+  color: #e6c788;
+  font-size: 0.8rem;
+  line-height: 1.5;
+  overflow-wrap: anywhere;
+}
+
+.transportReport ul {
+  max-height: 260px;
+  overflow-y: auto;
+  padding-left: 18px;
+}
+
+.transportReport summary {
+  cursor: pointer;
+}

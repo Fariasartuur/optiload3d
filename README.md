@@ -12,7 +12,7 @@ OptiLoad 3D é uma aplicação web para otimização e visualização de empacot
 **Backend:**
 * [Python 3](https://www.python.org/)
 * [FastAPI](https://fastapi.tiangolo.com/) (API REST de alta performance)
-* Algoritmo *Branch and Bound* com detecção de colisão (AABB)
+* Heurística com múltiplas ordenações, detecção de colisão e equilíbrio estático
 
 ---
 
@@ -28,7 +28,7 @@ Para rodar a aplicação, você precisará iniciar o servidor do Backend (Python
 
 ### Passo 1: Configurando o Backend (Motor de Otimização)
 
-1. Abra um terminal na pasta raiz onde se encontra o arquivo `main.py`.
+1. Abra um terminal na pasta `backend`, onde se encontra o arquivo `main.py`.
 2. Crie um ambiente virtual para isolar as dependências:
    ```bash
    python -m venv venv
@@ -80,7 +80,6 @@ Para rodar a aplicação, você precisará iniciar o servidor do Backend (Python
 
 ## 🧠 Sobre o Algoritmo
 
-O motor de organização utiliza uma variação do algoritmo de **Maximização de Volume em Bin 3D**. Ele opera gerando coordenadas de "cantos de envelope" 3D e realiza uma busca exata do tipo *Branch and Bound*. Para garantir o desempenho em uma aplicação web, o algoritmo implementa:
-* **Detecção de Colisão AABB** para impedir a sobreposição de volumes.
-* **Mecanismo de Poda (Pruning)** para descartar ramos matematicamente ineficientes.
-* **Timeout de Segurança** para retornar a melhor solução encontrada caso a explosão combinatória ultrapasse o tempo limite, garantindo que a interface não trave.
+O motor compara quatro ordenações de caixas, composições de pilhas e disposições alternativas por busca em feixe. Em seguida, remove e reconstrói pilhas para tentar melhorar a solução, com rotação horizontal opcional. Prioriza a **quantidade de caixas**, depois o volume e, por último, a redução do centro de massa vertical. É uma heurística: não prova o máximo global.
+
+Verifica colisões, apoio, momentos do peso acumulado e uma sequência de descarga compatível com as prioridades. Um diagnóstico separado aponta deslizamento e tombamento em freadas e curvas, mantendo visíveis as caixas que precisam de contenção. O orçamento de busca é de aproximadamente oito segundos; validações em andamento podem ultrapassar esse tempo. Veja [as hipóteses físicas, contrato da API e testes](backend/README.md).
