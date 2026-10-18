@@ -75,13 +75,16 @@ const AddBoxModal = ({ onClose, onAddBoxes }) => {
                     x: Number(box.x) || 0,
                     y: Number(box.y) || 0,
                     z: Number(box.z) || 0,
-                    color: box.color || '#3498db'
+                    color: box.color || '#3498db',
+                    // NOVOS CAMPOS ADICIONADOS PARA A FÍSICA E LOGÍSTICA:
+                    weight: box.weight !== undefined ? Number(box.weight) : 10,
+                    delivery_order: box.delivery_order !== undefined ? Number(box.delivery_order) : 1
                 }));
 
                 onAddBoxes(formattedBoxes);
                 onClose();
             } catch (err) {
-                setError('Erro ao ler o arquivo JSON. Certifique-se de que a estrutura está correta.');
+                setError('Erro ao ler o ficheiro JSON. Certifique-se de que a estrutura está correta.');
             }
         };
 
