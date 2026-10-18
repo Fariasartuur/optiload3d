@@ -11,11 +11,14 @@ from pydantic import BaseModel, Field, model_validator
 try:
     from .transport import TransportConfig, assess_transport, assess_route
     from .search import column_beam, unpack_columns, repair
+    from .storage import router as storage_router
 except ImportError:  # uvicorn main:app e entrada da Vercel
     from transport import TransportConfig, assess_transport, assess_route
     from search import column_beam, unpack_columns, repair
+    from storage import router as storage_router
 
 app = FastAPI()
+app.include_router(storage_router)
 app.add_middleware(CORSMiddleware, allow_origins=['*'], allow_credentials=True,
                    allow_methods=['*'], allow_headers=['*'])
 
