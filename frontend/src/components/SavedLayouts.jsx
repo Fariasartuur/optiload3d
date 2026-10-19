@@ -51,7 +51,7 @@ export default function SavedLayouts({ hasTrucks, getScene, onLoad, onExport }) 
     return <section className={styles.controlPanel}>
         <h3 className={styles.title}>Salvar e exportar</h3>
         <div className={styles.controlGroup}>
-            <form onSubmit={save}>
+            <form className={styles.inputRow} onSubmit={save}>
                 <label className={styles.inputLabel}>
                     Nome da organização
                     <input className={styles.numberInput} value={name} maxLength={120} required

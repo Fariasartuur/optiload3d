@@ -189,56 +189,135 @@ const CanvasControls = ({
                             </button>
                         </Panel>
 
+
                         {truckInfo.transportAssessment && (
                             <Panel title="Verificação da carga">
                                 <div className={styles.loadSummary}>
-                                    {truckInfo.staticStability?.validated && <p>Apoio estático verificado pelo modelo: bases integralmente apoiadas.</p>}
-                                    {truckInfo.unpackedCount > 0 && <p>{truckInfo.unpackedCount} caixa(s) ficaram fora da carga.</p>}
-                                    <details className={styles.experimentalReport} key={selectedTruckId}>
-                                    <summary>Freadas e curvas · experimental</summary>
-                                    <p>Esta simulação usa valores presumidos de atrito e aceleração.
-                                        As ocorrências calculadas não confirmam instabilidade real nem determinam a necessidade de amarração.</p>
-                                    <p>Tombamento estimado: {truckInfo.transportAssessment.initial_tipping_box_ids?.length ?? '—'} caixa(s).
-                                        {' '}Deslizamento estimado: {truckInfo.transportAssessment.initial_sliding_box_ids?.length ?? '—'} caixa(s).
-                                        Uma caixa pode aparecer nos dois grupos.</p>
-                                    <p>Frenagem: {truckInfo.transportAssessment.assumptions.braking_g}g;
-                                        curvas: {truckInfo.transportAssessment.assumptions.lateral_g}g;
-                                        aceleração: {truckInfo.transportAssessment.assumptions.rearward_g}g.
-                                        Atrito presumido piso/caixas: {truckInfo.transportAssessment.assumptions.floor_friction}
-                                        /{truckInfo.transportAssessment.assumptions.box_friction}.
-                                        {truckInfo.transportAssessment.assumptions.combined_maneuvers && ' Inclui manobras combinadas.'}</p>
-                                    <p>Após entregas: {truckInfo.transportAssessment.after_delivery_affected_box_ids?.length || 0} caixa(s)
-                                        com ocorrências calculadas. A retirada de vizinhos pode alterar o apoio.</p>
-                                    <p>{truckInfo.transportAssessment.assumptions.rigid_walls
-                                        ? 'Considera paredes rígidas e contatos contínuos entre caixas, somente no sentido apoiado.'
-                                        : 'Apoio das paredes desativado.'}
-                                        {' '}{truckInfo.transportAssessment.assumptions.rear_door_closed ? 'Porta fechada.' : 'Sem apoio da porta.'}
-                                        {' '}Resistência das paredes e embalagens não verificada; cintas não presumidas.</p>
-                                    {truckInfo.transportAssessment.issues.length > 0 && (
-                                        <details>
-                                            <summary>Ver ocorrências da simulação</summary>
-                                            <ul>
-                                                {truckInfo.transportAssessment.issues.map(issue => (
-                                                    <li key={`${issue.box_id}-${issue.after_delivery ?? 'initial'}`}>
-                                                        <button type="button" className={styles.toggleButton}
-                                                            onClick={() => setSelectedBoxId(issue.box_id)}>
-                                                            Selecionar {issue.box_id}
-                                                        </button>
-                                                        <p>Apoio: {issue.support_id === 'floor' ? 'piso' : issue.support_id}.
-                                                            {issue.after_delivery != null ? ` Após a entrega ${issue.after_delivery}.` : ' Na saída.'}
-                                                            {issue.cases.some(c => c.sliding) && ' Possível deslizamento no modelo.'}
-                                                            {issue.cases.some(c => c.tipping) && ' Possível tombamento no modelo.'}
-                                                            {' '}{issue.affected_box_ids.length} caixa(s) nesta pilha.</p>
-                                                        <p>Cenários: {issue.cases.map(c => maneuverLabels[c.scenario] || c.scenario).join('; ')}.</p>
-                                                    </li>
-                                                ))}
-                                            </ul>
-                                        </details>
+                                    {truckInfo.staticStability?.validated && (
+                                        <p>
+                                            Apoio estático verificado pelo modelo: bases integralmente
+                                            apoiadas.
+                                        </p>
                                     )}
+
+                                    {truckInfo.unpackedCount > 0 && (
+                                        <p>
+                                            {truckInfo.unpackedCount} caixa(s) ficaram fora da carga.
+                                        </p>
+                                    )}
+
+                                    <details
+                                        className={styles.experimentalReport}
+                                        key={selectedTruckId}
+                                    >
+                                        <summary>Freadas e curvas · experimental</summary>
+
+                                        <p>
+                                            Esta simulação usa valores presumidos de atrito e
+                                            aceleração. As ocorrências calculadas não confirmam
+                                            instabilidade real nem determinam a necessidade de
+                                            amarração.
+                                        </p>
+
+                                        <p>
+                                            Tombamento estimado:{' '}
+                                            {truckInfo.transportAssessment.initial_tipping_box_ids?.length ?? '—'}
+                                            {' '}caixa(s).
+                                            Deslizamento estimado:{' '}
+                                            {truckInfo.transportAssessment.initial_sliding_box_ids?.length ?? '—'}
+                                            {' '}caixa(s). Uma caixa pode aparecer nos dois grupos.
+                                        </p>
+
+                                        <p>
+                                            Frenagem:{' '}
+                                            {truckInfo.transportAssessment.assumptions.braking_g}g;
+                                            {' '}curvas:{' '}
+                                            {truckInfo.transportAssessment.assumptions.lateral_g}g;
+                                            {' '}aceleração:{' '}
+                                            {truckInfo.transportAssessment.assumptions.rearward_g}g.
+                                            {' '}Atrito presumido piso/caixas:{' '}
+                                            {truckInfo.transportAssessment.assumptions.floor_friction}
+                                            /
+                                            {truckInfo.transportAssessment.assumptions.box_friction}.
+                                            {truckInfo.transportAssessment.assumptions.combined_maneuvers &&
+                                                ' Inclui manobras combinadas.'}
+                                        </p>
+
+                                        <p>
+                                            Após entregas:{' '}
+                                            {truckInfo.transportAssessment.after_delivery_affected_box_ids?.length || 0}
+                                            {' '}caixa(s) com ocorrências calculadas. A retirada de
+                                            vizinhos pode alterar o apoio.
+                                        </p>
+
+                                        <p>
+                                            {truckInfo.transportAssessment.assumptions.rigid_walls
+                                                ? 'Considera paredes rígidas e contatos contínuos entre caixas, somente no sentido apoiado.'
+                                                : 'Apoio das paredes desativado.'}
+                                            {' '}
+                                            {truckInfo.transportAssessment.assumptions.rear_door_closed
+                                                ? 'Porta fechada.'
+                                                : 'Sem apoio da porta.'}
+                                            {' '}Resistência das paredes e embalagens não verificada;
+                                            cintas não presumidas.
+                                        </p>
+
+                                        {truckInfo.transportAssessment.issues.length > 0 && (
+                                            <details>
+                                                <summary>Ver ocorrências da simulação</summary>
+
+                                                <ul>
+                                                    {truckInfo.transportAssessment.issues.map((issue) => (
+                                                        <li
+                                                            key={`${issue.box_id}-${issue.after_delivery ?? 'initial'}`}
+                                                        >
+                                                            <button
+                                                                type="button"
+                                                                className={styles.toggleButton}
+                                                                onClick={() => setSelectedBoxId(issue.box_id)}
+                                                            >
+                                                                Selecionar {issue.box_id}
+                                                            </button>
+
+                                                            <p>
+                                                                Apoio:{' '}
+                                                                {issue.support_id === 'floor'
+                                                                    ? 'piso'
+                                                                    : issue.support_id}
+                                                                .
+                                                                {issue.after_delivery != null
+                                                                    ? ` Após a entrega ${issue.after_delivery}.`
+                                                                    : ' Na saída.'}
+                                                                {issue.cases.some((c) => c.sliding) &&
+                                                                    ' Possível deslizamento no modelo.'}
+                                                                {issue.cases.some((c) => c.tipping) &&
+                                                                    ' Possível tombamento no modelo.'}
+                                                                {' '}
+                                                                {issue.affected_box_ids.length} caixa(s)
+                                                                nesta pilha.
+                                                            </p>
+
+                                                            <p>
+                                                                Cenários:{' '}
+                                                                {issue.cases
+                                                                    .map(
+                                                                        (c) =>
+                                                                            maneuverLabels[c.scenario] ||
+                                                                            c.scenario
+                                                                    )
+                                                                    .join('; ')}
+                                                                .
+                                                            </p>
+                                                        </li>
+                                                    ))}
+                                                </ul>
+                                            </details>
+                                        )}
                                     </details>
                                 </div>
                             </Panel>
                         )}
+
 
                         <Panel title="Dimensões do Baú (m)">
                             <div className={styles.inputRow}>
