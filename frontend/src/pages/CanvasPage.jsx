@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useRef, useState } from 'react'
 import { Canvas } from '@react-three/fiber'
 import { OrbitControls, Grid } from '@react-three/drei'
 
@@ -11,6 +11,45 @@ import { MdAdd } from "react-icons/md";
 import styles from './CanvasPage.module.css'
 
 const CanvasPage = () => {
+    const renderRef = useRef(null);
+    const orbitRef = useRef(null);
+
+    const getScene = () => ({
+        trucks,
+        selectedTruckId,
+        camera: renderRef.current && orbitRef.current ? {
+            position: renderRef.current.camera.position.toArray(),
+            target: orbitRef.current.target.toArray()
+        } : null
+    });
+
+    const loadScene = (scene) => {
+        setTrucks(scene.trucks);
+        setSelectedTruckId(scene.selectedTruckId || scene.trucks[0]?.id || null);
+        setSelectedBoxId(null);
+        if (scene.camera && renderRef.current && orbitRef.current) {
+            renderRef.current.camera.position.fromArray(scene.camera.position);
+            orbitRef.current.target.fromArray(scene.camera.target);
+            orbitRef.current.update();
+        }
+    };
+
+    const exportPng = async () => {
+        if (!renderRef.current) throw new Error('A visualização ainda está carregando.');
+        const { gl, scene, camera } = renderRef.current;
+        gl.render(scene, camera);
+        const blob = await new Promise(resolve => gl.domElement.toBlob(resolve, 'image/png'));
+        if (!blob) throw new Error('Não foi possível gerar a imagem.');
+        const url = URL.createObjectURL(blob);
+        const link = document.createElement('a');
+        link.href = url;
+        link.download = `optiload-${new Date().toISOString().replace(/[:.]/g, '-')}.png`;
+        document.body.appendChild(link);
+        link.click();
+        link.remove();
+        setTimeout(() => URL.revokeObjectURL(url), 1000);
+    };
+
     const [showAddTruckModal, setShowAddTruckModal] = useState(false);
 
     const [selectedTruckId, setSelectedTruckId] = useState(null);
@@ -161,11 +200,16 @@ const CanvasPage = () => {
                     cutoffY={cutoffY}
                     setCutoffY={setCutoffY}
                     onToggleStyle={toggleTruckStyle}
+                    hasTrucks={trucks.length > 0}
+                    getScene={getScene}
+                    onLoadScene={loadScene}
+                    onExportPng={exportPng}
                 />
 
                 <div id="canvas-container" className={styles.canvasContainer}>
-                    <Canvas camera={{ position: [15, 15, 15], fov: 50 }} onPointerMissed={() => setSelectedTruckId(null)}>
-                        <OrbitControls />
+                    <Canvas gl={{ preserveDrawingBuffer: true }} onCreated={state => { renderRef.current = state; }} camera={{ position: [15, 15, 15], fov: 50 }} onPointerMissed={() => setSelectedTruckId(null)}>
+                        <color attach="background" args={['#1e1e24']} />
+                        <OrbitControls ref={orbitRef} />
 
                         <ambientLight intensity={0.6} />
                         <directionalLight

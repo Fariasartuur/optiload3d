@@ -93,3 +93,31 @@ Toda caixa elevada agora exige base integralmente apoiada (tolerância numérica
 Nos casos informados, usando carga_desafio.json, foram observadas 61 caixas em 3x3x6 e 62 em 4x4x6, com topo das pilhas elevadas até 2,4 m (antes 3 m e 4 m). A caixa individual FORA-altura tem 0,4 x 2,5 x 0,4 m e cabe nesses baús, portanto continua podendo aparecer no piso com um alerta dinâmico legítimo. FORA-base também passa a caber em alguns caminhões maiores. Os nomes dessas caixas indicavam inviabilidade apenas para o caminhão original 2,4x2,4x6.
 
 A resposta inclui static_stability.validated e minimum_base_support=1.0. O painel separa initial_tipping_box_ids de initial_sliding_box_ids; equilíbrio estático não elimina deslizamento com o atrito presumido. Não foram reduzidas arbitrariamente acelerações nem aumentados coeficientes de atrito para apagar avisos. O modo continua mostrando cargas que exigem contenção, conforme solicitado.
+
+## Organizações salvas e exportação PNG
+
+O banco SQLite fica em `backend/data/optiload.sqlite3` e é criado automaticamente no primeiro acesso. Não requer dependências adicionais. Para outro disco persistente, configure a variável de ambiente `OPTILOAD_DB_PATH` com o caminho do arquivo. A pasta de dados não entra no Git; para backup, encerre o backend e copie o arquivo SQLite.
+
+A tabela `layouts` contém `id` (UUID, chave primária), `name`, `created_at` (UTC), `schema_version`, `truck_count`, `box_count` e `scene_json`. Cada salvamento cria uma versão independente, sem sobrescrever versões anteriores. O snapshot JSON versionado preserva caminhões, dimensões, caixas orientadas e posicionadas, pesos, prioridades, metadados de diagnóstico, corte visual, estilo e posição/alvo da câmera. Salvar não executa a otimização nem certifica a estabilidade de uma cena editada manualmente.
+
+Endpoints:
+
+- `POST /api/layouts`: corpo `{ "name": "Minha carga", "scene": { "trucks": [...], "camera": { "position": [15,15,15], "target": [0,0,0] }, "selectedTruckId": "truck-id" } }`. Retorna HTTP 201 e o identificador.
+- `GET /api/layouts`: lista resumos, do mais recente ao mais antigo.
+- `GET /api/layouts/{id}`: recupera uma versão completa; HTTP 404 se inexistente.
+
+Nomes em branco, IDs duplicados, dimensões inválidas e snapshots maiores que 4 MB são rejeitados. Acesso SQL parametrizado; conexões fechadas por requisição e gravações transacionais. A implementação é para uso local compartilhado, sem contas ou isolamento por usuário.
+
+No painel **Salvar e exportar**, digite um nome e clique em **Salvar organização**. Para recuperar após recarregar a página, selecione uma versão e clique em **Abrir organização**. Abrir substitui a cena em memória, com confirmação caso já existam caminhões. **Atualizar lista** consulta novamente o banco.
+
+**Exportar vista em PNG** baixa uma imagem da cena 3D com todos os caminhões visíveis, no ângulo e corte de altura atuais. Não inclui os painéis HTML. A resolução é a do canvas renderizado (depende da janela e da densidade de pixels). O renderer preserva o buffer e renderiza novamente antes da captura para evitar imagens vazias. Nenhum serviço externo recebe a imagem.
+
+### Hospedagem
+
+O backend agora suporta PostgreSQL persistente por `DATABASE_URL` (ou `POSTGRES_URL`), com TLS em produção. O SQLite permanece como opção local. Na Vercel, a ausência de PostgreSQL retorna 503 em vez de gravar em armazenamento efêmero. A tabela é inicializada automaticamente; as organizações locais não são migradas automaticamente. O limite por snapshot é 4 MB.
+
+Veja [PUBLICAR-VERCEL.md](../PUBLICAR-VERCEL.md) para conectar um banco Neon ao projeto existente e publicar frontend/API juntos. Não há autenticação: a lista de organizações é compartilhada entre os visitantes.
+
+### Testes adicionais
+
+`python -B -m unittest backend.test_storage -v` verifica gravação/leitura por conexões independentes, preservação da cena, versões, consultas parametrizadas, HTTP 404 e validação HTTP 422. O fluxo de salvar, recarregar a página, reabrir e baixar um PNG também foi verificado no navegador.

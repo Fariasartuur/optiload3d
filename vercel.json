@@ -1,8 +1,17 @@
 {
-  "rewrites": [
-    {
-      "source": "/api/(.*)",
-      "destination": "/api/index.py"
+  "$schema": "https://openapi.vercel.sh/vercel.json",
+  "framework": null,
+  "installCommand": "npm ci --prefix frontend",
+  "buildCommand": "npm run build --prefix frontend",
+  "outputDirectory": "frontend/dist",
+  "functions": {
+    "api/index.py": {
+      "maxDuration": 60,
+      "excludeFiles": "{backend/venv/**,backend/data/**,backend/__pycache__/**,backend/test_*.py,frontend/node_modules/**,testes/**}"
     }
+  },
+  "rewrites": [
+    { "source": "/api", "destination": "/api/index.py" },
+    { "source": "/api/:path*", "destination": "/api/index.py" }
   ]
 }
