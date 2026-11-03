@@ -1,0 +1,226 @@
+[
+  {
+    "id": "carreto-01",
+    "name": "Sofá de dois lugares",
+    "shape": "sofa",
+    "width": 2,
+    "height": 0.85,
+    "depth": 0.85,
+    "weight": 45,
+    "max_load": 0,
+    "delivery_order": 1,
+    "color": "#cb8055"
+  },
+  {
+    "id": "carreto-02",
+    "name": "Cama",
+    "shape": "bed",
+    "width": 1.4,
+    "height": 1,
+    "depth": 2,
+    "weight": 40,
+    "max_load": 0,
+    "delivery_order": 2,
+    "color": "#887dc0"
+  },
+  {
+    "id": "carreto-03",
+    "name": "Geladeira",
+    "shape": "fridge",
+    "width": 0.7,
+    "height": 1.8,
+    "depth": 0.7,
+    "weight": 65,
+    "max_load": 0,
+    "delivery_order": 3,
+    "color": "#d0d7df"
+  },
+  {
+    "id": "carreto-04",
+    "name": "Fogão",
+    "shape": "stove",
+    "width": 0.6,
+    "height": 0.9,
+    "depth": 0.6,
+    "weight": 35,
+    "max_load": 0,
+    "delivery_order": 1,
+    "color": "#4a647e"
+  },
+  {
+    "id": "carreto-05",
+    "name": "Máquina de lavar",
+    "shape": "washer",
+    "width": 0.6,
+    "height": 0.9,
+    "depth": 0.65,
+    "weight": 60,
+    "max_load": 0,
+    "delivery_order": 2,
+    "color": "#b8c3ca"
+  },
+  {
+    "id": "carreto-06",
+    "name": "Mesa",
+    "shape": "table",
+    "width": 1.4,
+    "height": 0.8,
+    "depth": 0.8,
+    "weight": 25,
+    "max_load": 0,
+    "delivery_order": 3,
+    "color": "#af824f"
+  },
+  {
+    "id": "carreto-07",
+    "name": "Cadeira 1",
+    "shape": "chair",
+    "width": 0.5,
+    "height": 0.95,
+    "depth": 0.5,
+    "weight": 5,
+    "max_load": 0,
+    "delivery_order": 1,
+    "color": "#358fbc"
+  },
+  {
+    "id": "carreto-08",
+    "name": "Cadeira 2",
+    "shape": "chair",
+    "width": 0.5,
+    "height": 0.95,
+    "depth": 0.5,
+    "weight": 5,
+    "max_load": 0,
+    "delivery_order": 2,
+    "color": "#46a786"
+  },
+  {
+    "id": "carreto-09",
+    "name": "Tambor",
+    "shape": "drum",
+    "width": 0.6,
+    "height": 0.9,
+    "depth": 0.6,
+    "weight": 20,
+    "max_load": 0,
+    "delivery_order": 3,
+    "color": "#ba5656"
+  },
+  {
+    "id": "carreto-10",
+    "name": "Bola",
+    "shape": "sphere",
+    "width": 0.45,
+    "height": 0.45,
+    "depth": 0.45,
+    "weight": 2,
+    "max_load": 0,
+    "delivery_order": 1,
+    "color": "#e5b847"
+  },
+  {
+    "id": "carreto-11",
+    "name": "Saco cheio",
+    "shape": "bag",
+    "width": 0.55,
+    "height": 0.75,
+    "depth": 0.55,
+    "weight": 8,
+    "max_load": 0,
+    "delivery_order": 2,
+    "color": "#526852"
+  },
+  {
+    "id": "carreto-12",
+    "name": "Prisma hexagonal",
+    "shape": "polygon",
+    "width": 0.5,
+    "height": 0.6,
+    "depth": 0.5,
+    "weight": 7,
+    "max_load": 0,
+    "delivery_order": 3,
+    "color": "#8d6ac5"
+  },
+  {
+    "id": "carreto-13",
+    "name": "Caixa de livros",
+    "shape": "box",
+    "width": 0.45,
+    "height": 0.35,
+    "depth": 0.4,
+    "weight": 12,
+    "max_load": 0,
+    "delivery_order": 1,
+    "color": "#df8a50"
+  },
+  {
+    "id": "carreto-14",
+    "name": "Caixa leve",
+    "shape": "box",
+    "width": 0.4,
+    "height": 0.3,
+    "depth": 0.4,
+    "weight": 3,
+    "max_load": 0,
+    "delivery_order": 2,
+    "color": "#69bda1"
+  },
+  {
+    "id": "carreto-15",
+    "name": "Mesa redonda personalizada",
+    "shape": "custom",
+    "width": 0.9,
+    "height": 0.8,
+    "depth": 0.9,
+    "weight": 15,
+    "max_load": 0,
+    "delivery_order": 2,
+    "color": "#5e9cbe",
+    "parts": [
+      {
+        "kind": "box",
+        "x": 0.36,
+        "y": 0,
+        "z": 0.36,
+        "width": 0.18,
+        "height": 0.72,
+        "depth": 0.18
+      },
+      {
+        "kind": "cylinder",
+        "x": 0,
+        "y": 0.72,
+        "z": 0,
+        "width": 0.9,
+        "height": 0.08,
+        "depth": 0.9
+      }
+    ]
+  },
+  {
+    "id": "carreto-16",
+    "name": "Prisma triangular personalizado",
+    "shape": "custom",
+    "width": 0.5,
+    "height": 0.5,
+    "depth": 0.5,
+    "weight": 4,
+    "max_load": 0,
+    "delivery_order": 1,
+    "color": "#d7a163",
+    "parts": [
+      {
+        "kind": "prism",
+        "sides": 3,
+        "x": 0,
+        "y": 0,
+        "z": 0,
+        "width": 0.5,
+        "height": 0.5,
+        "depth": 0.5
+      }
+    ]
+  }
+]

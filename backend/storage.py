@@ -19,6 +19,10 @@ DATABASE_ERRORS = (sqlite3.Error,) + ((psycopg.Error,) if psycopg else ())
 
 from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel, ConfigDict, Field, model_validator
+try:
+    from .shapes import GeometryInput
+except ImportError:
+    from shapes import GeometryInput
 
 router = APIRouter(prefix='/api/layouts', tags=['Organizações salvas'])
 
@@ -32,6 +36,11 @@ class SavedBox(BaseModel):
     x: float = 0
     y: float = 0
     z: float = 0
+
+    @model_validator(mode='after')
+    def valid_geometry(self):
+        GeometryInput.model_validate(self.model_dump())
+        return self
 
 
 class SavedTruck(BaseModel):

@@ -1,0 +1,87 @@
+[
+  {
+    "id": "mesa-1",
+    "name": "Mesa de jantar",
+    "shape": "table",
+    "width": 1.8,
+    "height": 0.8,
+    "depth": 0.9,
+    "weight": 25,
+    "max_load": 20,
+    "delivery_order": 2,
+    "color": "#b77946"
+  },
+  {
+    "id": "cadeira-1",
+    "name": "Cadeira azul",
+    "shape": "chair",
+    "width": 0.5,
+    "height": 0.95,
+    "depth": 0.5,
+    "weight": 5,
+    "max_load": 0,
+    "delivery_order": 1,
+    "color": "#3498db"
+  },
+  {
+    "id": "cadeira-2",
+    "name": "Cadeira verde",
+    "shape": "chair",
+    "width": 0.5,
+    "height": 0.95,
+    "depth": 0.5,
+    "weight": 5,
+    "max_load": 0,
+    "delivery_order": 1,
+    "color": "#37ac82"
+  },
+  {
+    "id": "caixa-1",
+    "name": "Caixa baixa",
+    "shape": "box",
+    "width": 0.6,
+    "height": 0.4,
+    "depth": 0.5,
+    "weight": 8,
+    "delivery_order": 1,
+    "color": "#e6b640"
+  },
+  {
+    "id": "banco-1",
+    "name": "Banco personalizado",
+    "shape": "custom",
+    "width": 1.2,
+    "height": 0.5,
+    "depth": 0.4,
+    "weight": 12,
+    "max_load": 10,
+    "delivery_order": 2,
+    "color": "#9668cc",
+    "parts": [
+      {
+        "x": 0,
+        "y": 0.42,
+        "z": 0,
+        "width": 1.2,
+        "height": 0.08,
+        "depth": 0.4
+      },
+      {
+        "x": 0,
+        "y": 0,
+        "z": 0,
+        "width": 0.1,
+        "height": 0.42,
+        "depth": 0.4
+      },
+      {
+        "x": 1.1,
+        "y": 0,
+        "z": 0,
+        "width": 0.1,
+        "height": 0.42,
+        "depth": 0.4
+      }
+    ]
+  }
+]
