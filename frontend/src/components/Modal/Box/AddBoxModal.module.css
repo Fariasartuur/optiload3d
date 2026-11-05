@@ -219,3 +219,58 @@
 
     font-size: 0.8rem;
 }
+.modalContent { width: 640px; max-height: calc(100dvh - 48px); overflow-y: auto; }
+.modalBody select { padding: 8px; background: #25252c; color: #fff; border: 1px solid #555; border-radius: 6px; }
+.inputRow label { min-width: 0; }
+.preview { height: 210px; background: #15171e; border-radius: 8px; }
+.hint { margin: 0; font-size: 0.8rem; color: #aeb4bf; line-height: 1.5; }
+.parts { max-height: 300px; overflow-y: auto; }
+.parts fieldset { border: 1px solid #484850; border-radius: 6px; margin-bottom: 8px; }
+.partGrid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; }
+@media (max-width: 500px) { .inputRow { flex-wrap: wrap; } .inputRow label { flex-basis: 40%; } }
+
+.wideModal { width: 1120px; }
+.customizeButton { padding:10px; border-radius:7px; background:#154967; border:1px solid #58b9e5; color:#d6f0ff; cursor:pointer; }
+
+.designPanel,.cargoPanel { display:flex; flex-direction:column; gap:12px; }
+.designPanel[hidden],.cargoPanel[hidden] { display:none; }
+.wideModal { width:calc(100vw - 40px); max-height:calc(100dvh - 24px); background:#171d27; }
+.wideModal .modalHeader {margin-bottom:8px;}
+.steps {display:flex;gap:8px;}
+.steps button {padding:10px 16px;background:#263344;border:1px solid #506478;color:#dce9f5;border-radius:6px;cursor:pointer;}
+.steps button[aria-pressed=true] {background:#164e6a;border-color:#67cff7;}
+.editorFooter {position:sticky;bottom:-16px;background:#19212c;padding:12px;display:flex;align-items:center;justify-content:space-between;gap:16px;border-top:1px solid #414c5e;z-index:2;}
+.editorFooter span {font-size:.8rem;color:#aab9ca;}
+.editorFooter .submitButton {width:auto;min-width:220px;margin:0;}
+.cargoPanel {max-width:760px;width:100%;margin:auto;padding:16px 0;}
+.wideModal .modalHeader {padding-bottom:6px;margin-bottom:6px;}
+.wideModal .tabs {margin-bottom:0;}
+.wideModal .modalBody {gap:8px;}
+.wideModal .designPanel {gap:6px;}
+.studio {position:fixed;inset:0;z-index:1000;background:#141418;display:flex;flex-direction:column;font-family:Inter,system-ui,sans-serif;color:#f0f0f0;}
+.studioHeader {height:64px;flex-shrink:0;display:flex;align-items:center;gap:20px;padding:10px 22px;color:white;background:#111115;}
+.studioHeader h2 {font-size:19px;margin:0;white-space:nowrap;letter-spacing:-.5px;}
+.studioHeader h2 span {font-weight:400;opacity:.75;font-size:14px;letter-spacing:0;}
+.studioHeader input {min-width:100px;width:300px;margin-right:auto;border:1px solid #ffffff40;background:#ffffff12;border-radius:7px;padding:10px 12px;color:white;font:inherit;font-size:13px;}
+.studioHeader input::placeholder {color:#ffffffb5;}
+.studioHeader button {border:0;background:transparent;color:white;border-radius:7px;padding:10px 12px;cursor:pointer;white-space:nowrap;}
+.studioHeader button:hover {background:#ffffff24;}
+.studio .finish {background:#2980b9;color:#ffffff;font-weight:650;border:0;border-radius:8px;padding:12px 20px;cursor:pointer;}
+.studio .finish:disabled {opacity:.45;cursor:not-allowed;}
+.studioStatus {display:flex;justify-content:space-between;gap:14px;padding:8px 20px;background:#17171c;border-top:1px solid #34343e;font-size:11px;color:#aeb4bf;flex-shrink:0;}
+.drawerOverlay {position:absolute;inset:64px 0 0;background:#00000088;z-index:3;display:flex;justify-content:flex-end;}
+.cargoDrawer {width:400px;max-width:100%;overflow:auto;background:#1c1c22;padding:28px;display:flex;flex-direction:column;gap:16px;box-shadow:-10px 0 35px #00000055;}
+.drawerTitle {display:flex;align-items:center;justify-content:space-between;}
+.drawerTitle h2 {font-size:21px;margin:6px 0;}
+.drawerTitle small {font-size:10px;letter-spacing:1px;color:#6ab8e8;}
+.drawerTitle button {background:#30303b;border:0;border-radius:50%;width:32px;height:32px;font-size:22px;cursor:pointer;}
+.cargoDrawer p,.cargoDrawer small {font-size:12px;color:#aeb4bf;line-height:1.7;margin:0;}
+.cargoDrawer label {display:flex;flex-direction:column;gap:7px;font-size:12px;color:#b8b8c0;}
+.cargoDrawer input,.cargoDrawer select {box-sizing:border-box;width:100%;padding:11px;border:1px solid #41414b;border-radius:7px;background:#141418;color:#ffffff;}
+.cargoDrawer .finish {background:#2980b9;color:white;margin-top:auto;}
+.backDesign {border:0;background:transparent;color:#b8b8c0;cursor:pointer;padding:10px;}
+@media(max-width:800px) {.studioHeader {gap:8px;padding:8px;height:60px;}.studioHeader h2 {display:none;}.studioHeader input {width:120px;}.studioHeader button {padding:9px;font-size:11px;}.studioStatus span:last-child {display:none;}}
+
+.studioHeader {border-bottom:1px solid #3498db;}
+.drawerTitle button {color:#ffffff;}
+.studio .finish:hover {background:#3498db;}

@@ -9,10 +9,12 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel, Field, model_validator
 try:
+    from .shapes import GeometryInput
     from .transport import TransportConfig, assess_transport, assess_route
     from .search import column_beam, unpack_columns, repair
     from .storage import router as storage_router
 except ImportError:  # uvicorn main:app e entrada da Vercel
+    from shapes import GeometryInput
     from transport import TransportConfig, assess_transport, assess_route
     from search import column_beam, unpack_columns, repair
     from storage import router as storage_router
@@ -23,7 +25,7 @@ app.add_middleware(CORSMiddleware, allow_origins=['*'], allow_credentials=True,
                    allow_methods=['*'], allow_headers=['*'])
 
 
-class BoxInput(BaseModel):
+class BoxInput(GeometryInput):
     id: str
     width: float = Field(gt=0, allow_inf_nan=False)
     height: float = Field(gt=0, allow_inf_nan=False)
@@ -33,6 +35,7 @@ class BoxInput(BaseModel):
     delivery_order: int = Field(default=1, ge=1)
     max_load: Optional[float] = Field(default=None, ge=0, allow_inf_nan=False)
     allow_rotation: bool = True  # Giro horizontal; altura preservada.
+    name: str = ''
 
 
 class OptimizeRequest(BaseModel):
@@ -56,6 +59,7 @@ class OptimizeRequest(BaseModel):
 class Box:
     def __init__(self, data: BoxInput):
         self.id, self.color = data.id, data.color
+        self.name = data.name
         self.w, self.h, self.d = data.width, data.height, data.depth
         self.weight, self.delivery_order = data.weight, data.delivery_order
         self.max_load, self.allow_rotation = data.max_load, data.allow_rotation
@@ -63,7 +67,7 @@ class Box:
         self.x = self.y = self.z = 0.0
 
     def output(self):
-        return dict(id=self.id, color=self.color, width=self.w, height=self.h,
+        return dict(id=self.id, name=self.name, color=self.color, width=self.w, height=self.h,
                     depth=self.d, x=self.x, y=self.y, z=self.z,
                     weight=self.weight, delivery_order=self.delivery_order,
                     max_load=self.max_load, allow_rotation=self.allow_rotation)
@@ -241,6 +245,12 @@ class TruckBin:
 
 
 def solve(req, time_limit=8.0):
+    if any(b.parts for b in req.boxes):
+        try:
+            from .compound import solve_compound
+        except ImportError:
+            from compound import solve_compound
+        return solve_compound(req, time_limit)
     boxes = [Box(b) for b in req.boxes]
     keys = [lambda b: (-b.delivery_order, -b.weight, -b.vol, b.id),
             lambda b: (b.vol, -b.weight, -b.delivery_order, b.id),
@@ -296,6 +306,7 @@ def optimize_load(req: OptimizeRequest):
     truck = solve(req)
     packed_ids = {b.id for b in truck.placed_boxes}
     volume = sum(b.vol for b in truck.placed_boxes)
+    curved_ids = [b.id for b in truck.placed_boxes if getattr(b, 'curved', False)]
     return {
         'packed_boxes': [b.output() for b in truck.placed_boxes],
         'max_volume': volume,  # Campo legado: volume encontrado, não ótimo provado.
@@ -306,7 +317,13 @@ def optimize_load(req: OptimizeRequest):
         'unloading_order': truck.unloading_sequence(truck.placed_boxes),
         'search_truncated': truck.search_truncated,
         'optimality_proven': False,
-        'static_stability': {'validated': True, 'minimum_base_support': 1.0},
+        'packing_geometry': 'conservative_part_envelopes' if curved_ids else 'cuboids',
+        'static_stability': {'validated': not curved_ids, 'minimum_base_support': 1.0,
+                             'curved_object_ids': curved_ids,
+                             'note': 'Contornos de proteção verificados. Apoio curvo, rolamento e deformação não validados; bases planas podem usar apoios verificados; bases arredondadas ficam no piso. Objetos com curvas não recebem carga.' if curved_ids else '',
+                             'model': 'conservative_part_envelopes' if curved_ids else 'rigid_parts' if any(b.parts for b in req.boxes) else 'solid_boxes'},
         'search_details': truck.search_details,
-        'transport_assessment': assess_route(truck, truck.placed_boxes),
+        'transport_assessment': ({'status': 'not_evaluated', 'issues': [],
+            'note': 'Freadas e curvas ainda não são avaliadas para cargas com objetos compostos.'}
+            if any(b.parts for b in req.boxes) else assess_route(truck, truck.placed_boxes)),
     }

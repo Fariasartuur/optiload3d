@@ -1,0 +1,16 @@
+
+# Banco local de organizações
+backend/data/
+*.sqlite3-journal
+*.sqlite3-wal
+*.sqlite3-shm
+
+# Segredos e arquivos gerados
+.env
+.env.*
+!.env.example
+.vercel/
+**/node_modules/
+**/venv/
+**/__pycache__/
+frontend/dist/

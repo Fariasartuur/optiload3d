@@ -36,7 +36,8 @@ const CanvasControls = ({
         ? truckInfo.cutoffY
         : maxH;
 
-    const totalBoxes = truckInfo?.boxes?.length || 0;
+    const cargoItems = [...(truckInfo?.boxes || []), ...(truckInfo?.unpackedBoxes || [])];
+    const totalBoxes = cargoItems.length;
     const visibleBoxes = truckInfo?.boxes?.filter(b => b.y < currentCutoffY).length || 0;
     const selectedBox = truckInfo?.boxes?.find(b => b.id === selectedBoxId) || null;
 
@@ -67,6 +68,8 @@ const CanvasControls = ({
     };
 
     const handleAddBoxes = (newBoxes) => {
+        const existing = new Set(cargoItems.map(b => b.id));
+        if (newBoxes.some(b => existing.has(b.id))) throw new Error('Já existe um objeto com esse ID no caminhão.');
         setTruckInfo(prev => ({
             ...prev,
             transportAssessment: null,
@@ -75,7 +78,7 @@ const CanvasControls = ({
     };
 
     const handleDeleteBox = (boxId) => {
-        const confirmed = window.confirm('Tem certeza que deseja excluir esta caixa?');
+        const confirmed = window.confirm('Tem certeza que deseja excluir este objeto?');
         if (!confirmed) return;
 
         setTruckInfo(prev => ({
@@ -87,7 +90,7 @@ const CanvasControls = ({
     };
 
     const handleOptimizeLoad = async () => {
-        if (!truckInfo || !truckInfo.boxes || truckInfo.boxes.length === 0) return;
+        if (!truckInfo || cargoItems.length === 0) return;
 
         setIsOptimizing(true);
         try {
@@ -98,8 +101,11 @@ const CanvasControls = ({
                     truck_w: truckInfo.width,
                     truck_h: truckInfo.height,
                     truck_d: truckInfo.depth,
-                    boxes: truckInfo.boxes.map(b => ({
+                    boxes: cargoItems.map(b => ({
                         id: b.id,
+                        name: b.name || '',
+                        shape: b.shape || 'box',
+                        parts: b.parts || null,
                         width: b.width,
                         height: b.height,
                         depth: b.depth,
@@ -112,7 +118,10 @@ const CanvasControls = ({
                 })
             });
 
-            if (!response.ok) throw new Error('Falha na comunicação com o backend.');
+            if (!response.ok) {
+                const error = await response.json().catch(() => ({}));
+                throw new Error(Array.isArray(error.detail) ? error.detail.map(d => d.msg).join('; ') : error.detail || 'Falha na comunicação com o backend.');
+            }
 
             const data = await response.json();
 
@@ -121,14 +130,15 @@ const CanvasControls = ({
                 boxes: data.packed_boxes,
                 transportAssessment: data.transport_assessment,
                 staticStability: data.static_stability,
-                unpackedCount: data.unpacked_boxes?.length || 0
+                unpackedCount: data.unpacked_boxes?.length || 0,
+                unpackedBoxes: data.unpacked_boxes || []
             }));
 
             setSelectedBoxId(null);
 
         } catch (error) {
             console.error("Erro na otimização:", error);
-            alert("Ocorreu um erro ao calcular a organização das caixas.");
+            alert(`Não foi possível organizar a carga: ${error.message}`);
         } finally {
             setIsOptimizing(false);
         }
@@ -160,7 +170,7 @@ const CanvasControls = ({
                                 </button>
                             </div>
                             <div className={styles.label}>
-                                <span>Adicionar Caixa:</span>
+                                <span>Adicionar objeto:</span>
                                 <button
                                     className={styles.addButton}
                                     onClick={() => setShowAddBoxModal(true)}
@@ -195,18 +205,19 @@ const CanvasControls = ({
                                 <div className={styles.loadSummary}>
                                     {truckInfo.staticStability?.validated && (
                                         <p>
-                                            Apoio estático verificado pelo modelo: bases integralmente
-                                            apoiadas.
+                                            Apoio estático verificado pelo modelo: superfícies inferiores de apoio integralmente apoiadas.
                                         </p>
                                     )}
+                                    {truckInfo.staticStability?.note && <p>{truckInfo.staticStability.note}</p>}
 
                                     {truckInfo.unpackedCount > 0 && (
                                         <p>
-                                            {truckInfo.unpackedCount} caixa(s) ficaram fora da carga.
+                                            {truckInfo.unpackedCount} objeto(s) ficaram fora da carga. Continuam na lista para a próxima tentativa.
                                         </p>
                                     )}
 
-                                    <details
+                                    {truckInfo.unpackedBoxes?.length > 0 && <details><summary>Objetos aguardando espaço</summary><ul>{truckInfo.unpackedBoxes.map(b => <li key={b.id}>{b.name || b.id} — {b.width} × {b.height} × {b.depth} m</li>)}</ul></details>}
+                                    {truckInfo.transportAssessment.status === 'not_evaluated' ? <p>{truckInfo.transportAssessment.note}</p> : <details
                                         className={styles.experimentalReport}
                                         key={selectedTruckId}
                                     >
@@ -313,7 +324,7 @@ const CanvasControls = ({
                                                 </ul>
                                             </details>
                                         )}
-                                    </details>
+                                    </details>}
                                 </div>
                             </Panel>
                         )}
@@ -376,7 +387,7 @@ const CanvasControls = ({
                             />
 
                             <div className={styles.stats}>
-                                Total Caixas: {totalBoxes} <br />
+                                Total de objetos: {totalBoxes} <br />
                                 Visíveis: {visibleBoxes}
                             </div>
                         </Panel>
@@ -390,14 +401,14 @@ const CanvasControls = ({
                 )}
 
                 {selectedBox && (
-                    <Panel title={"Caixa Selecionada: " + (selectedBox.name || selectedBox.id)}>
+                    <Panel title={"Objeto selecionado: " + (selectedBox.name || selectedBox.id)}>
                         <div className={styles.label}>
                             <span>Dimensões:</span>
                             <span>{selectedBox.width}m x {selectedBox.height}m x {selectedBox.depth}m</span>
                         </div>
 
                         <div className={styles.label}>
-                            <span>Excluir Caixa:</span>
+                            <span>Excluir objeto:</span>
                             <button
                                 className={styles.deleteButton}
                                 onClick={() => handleDeleteBox(selectedBox.id)}
