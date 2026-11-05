@@ -1,8 +1,28 @@
 import { useMemo, useEffect } from 'react';
-import { BoxGeometry, SphereGeometry, CylinderGeometry, BufferGeometry, Float32BufferAttribute } from 'three';
+import { BoxGeometry, SphereGeometry, CylinderGeometry, BufferGeometry, Float32BufferAttribute, EdgesGeometry, Color, CanvasTexture, SRGBColorSpace } from 'three';
 import { polygonPoints } from '../utils/modeling';
 
-export default function PartMesh({part:p, color='#3498db', selected=false, ...events}) {
+let faceTexture=null;
+const getFaceTexture=()=>{
+    if(faceTexture||typeof document==='undefined') return faceTexture;
+    const size=128,canvas=document.createElement('canvas');
+    canvas.width=canvas.height=size;
+    const ctx=canvas.getContext('2d');
+    ctx.fillStyle='#ffffff';ctx.fillRect(0,0,size,size);
+    const band=14;
+    for(let i=0;i<band;i++){
+        const shade=Math.round(150+105*(i/band)**.6);
+        ctx.strokeStyle=`rgb(${shade},${shade},${shade})`;
+        ctx.strokeRect(i+.5,i+.5,size-2*i-1,size-2*i-1);
+    }
+    ctx.strokeStyle='#5a5a5a';ctx.lineWidth=3;ctx.strokeRect(1.5,1.5,size-3,size-3);
+    faceTexture=new CanvasTexture(canvas);
+    faceTexture.colorSpace=SRGBColorSpace;
+    faceTexture.anisotropy=4;
+    return faceTexture;
+};
+
+export default function PartMesh({part:p, color='#3498db', selected=false, outlined=false, gap=0, ...events}) {
     const kind=p.kind || 'box';
     const geometry=useMemo(()=>{
         if(kind==='ellipsoid') return new SphereGeometry(.5,32,20);
@@ -27,7 +47,16 @@ export default function PartMesh({part:p, color='#3498db', selected=false, ...ev
         return new BoxGeometry(1,1,1);
     },[kind,p.sides,p.yaw]);
     useEffect(()=>()=>geometry.dispose(),[geometry]);
-    return <mesh geometry={geometry} position={[p.x+p.width/2,p.y+p.height/2,p.z+p.depth/2]} scale={[p.width,p.height,p.depth]} castShadow receiveShadow {...events}>
-        <meshStandardMaterial color={color} emissive={color} emissiveIntensity={selected ? .45 : 0} roughness={.65} />
+    const edges=useMemo(()=>outlined?new EdgesGeometry(geometry,30):null,[outlined,geometry]);
+    useEffect(()=>()=>edges?.dispose(),[edges]);
+    const edgeColor=useMemo(()=>'#'+new Color(color).multiplyScalar(.25).getHexString(),[color]);
+    const inset=size=>Math.max(size-2*gap,size*.9);
+    return <mesh geometry={geometry} position={[p.x+p.width/2,p.y+p.height/2,p.z+p.depth/2]} scale={[inset(p.width),inset(p.height),inset(p.depth)]} castShadow receiveShadow {...events}>
+        <meshStandardMaterial color={color} emissive={color} emissiveIntensity={selected ? .45 : 0} roughness={.65}
+            map={outlined&&kind==='box'?getFaceTexture():null}
+            polygonOffset={outlined} polygonOffsetFactor={1} polygonOffsetUnits={1} />
+        {edges&&<lineSegments geometry={edges} raycast={()=>null}>
+            <lineBasicMaterial color={selected?'#ffffff':edgeColor} />
+        </lineSegments>}
     </mesh>;
 }
