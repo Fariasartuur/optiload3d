@@ -12,7 +12,7 @@ class Part(BaseModel):
     width: float = Field(gt=0, allow_inf_nan=False)
     height: float = Field(gt=0, allow_inf_nan=False)
     depth: float = Field(gt=0, allow_inf_nan=False)
-    kind: Literal['box', 'ellipsoid', 'cylinder', 'prism'] = 'box'
+    kind: Literal['box', 'ellipsoid', 'cylinder', 'prism', 'bag'] = 'box'
     sides: int = Field(default=6, ge=3, le=12)
     yaw: int = Field(default=0, ge=0, le=3)
 
@@ -33,7 +33,7 @@ def preset(shape, w, h, d):
     if shape == 'stove':
         return [part(0,0,0,1,.96,1)] + [part(x,.96,z,.26,.04,.26,'cylinder') for x in (.12,.62) for z in (.12,.62)]
     if shape not in ('table', 'chair'):
-        kind = 'ellipsoid' if shape in ('sphere', 'bag') else 'cylinder' if shape == 'drum' else 'prism' if shape == 'polygon' else 'box'
+        kind = 'bag' if shape == 'bag' else 'ellipsoid' if shape == 'sphere' else 'cylinder' if shape == 'drum' else 'prism' if shape == 'polygon' else 'box'
         return [part(0,0,0,1,1,1,kind)]
     t = min(w, h, d) * .08
     level = h - t if shape == 'table' else h * .48
@@ -60,6 +60,8 @@ class GeometryInput(BaseModel):
             raise ValueError('Um objeto personalizado precisa de peças.')
         if self.shape == 'box' and self.parts:
             raise ValueError('Use shape=custom para objetos compostos.')
+        if self.shape == 'bag' and self.parts and len(self.parts) == 1 and self.parts[0].kind == 'ellipsoid':
+            self.parts[0].kind = 'bag'
         if not self.parts:
             return self
         eps = 1e-8 * min(self.width, self.height, self.depth)

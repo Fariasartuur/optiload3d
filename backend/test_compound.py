@@ -22,14 +22,84 @@ def placed(data, x=0, y=0, z=0):
 
 
 class CompoundTests(unittest.TestCase):
+    def test_beam_revisits_rotation_that_greedy_committed(self):
+        from time import monotonic
+        from backend.compound import insert_remaining, beam_compound
+        boxes=[RigidBox(item('first',w=2,h=1,d=1,weight=20,max_load=0)),
+               RigidBox(item('long',w=1,h=1,d=3,weight=10,max_load=0,allow_rotation=False))]
+        greedy=CompoundTruck(2,1,3)
+        insert_remaining(greedy,boxes,monotonic()+1)
+        self.assertEqual(len(greedy.placed_boxes),1)
+        better=beam_compound(greedy,boxes,monotonic()+1)
+        self.assertEqual(len(better.placed_boxes),2)
+        self.assertTrue(better.validate_layout())
+
+    def test_repair_moves_a_blocking_item_to_fit_missing_cargo(self):
+        from time import monotonic
+        from backend.compound import repair_compound, load_quality
+        small=item('small',w=1,h=1,d=1,max_load=0,allow_rotation=False)
+        big=item('big',w=2,h=1,d=1,max_load=0,allow_rotation=False)
+        truck=CompoundTruck(3,1,1)
+        truck.placed_boxes=[placed(small,x=1)]
+        self.assertTrue(truck.validate_layout())
+        self.assertFalse(any(truck.can_place(RigidBox(big),x,y,z) for x,y,z in truck.positions(RigidBox(big),monotonic()+1)))
+        result,attempts=repair_compound(truck,[RigidBox(small),RigidBox(big)],monotonic()+1)
+        self.assertEqual(len(result.placed_boxes),2)
+        self.assertGreater(load_quality(result),load_quality(truck))
+        self.assertTrue(result.validate_layout())
+        self.assertGreater(attempts,0)
+
+    def test_capacity_counts_all_descendants_and_respects_delivery(self):
+        truck=CompoundTruck(1,3,1)
+        base=placed(item('base',weight=30,max_load=13,delivery_order=3))
+        middle=placed(item('middle',weight=8,max_load=6,delivery_order=2),y=1)
+        top=placed(item('top',weight=6,max_load=0,delivery_order=1),y=2)
+        truck.placed_boxes=[base,middle,top]
+        self.assertFalse(truck.validate_layout())  # 8 + 6 on a base rated for 13
+        base.max_load=14
+        self.assertTrue(truck.validate_layout())
+        self.assertEqual(truck.unloading_sequence(truck.placed_boxes),['top','middle','base'])
+        middle.max_load=5
+        self.assertFalse(truck.validate_layout())
+        middle.max_load=6
+        top.delivery_order=4
+        self.assertFalse(truck.validate_layout())
+
+    def test_solver_keeps_heavy_base_and_delivery_sequence(self):
+        req=OptimizeRequest(truck_w=1,truck_h=3,truck_d=1,boxes=[
+            item('top','custom',weight=6,max_load=0,delivery_order=1,
+                 parts=[dict(x=0,y=0,z=0,width=1,height=1,depth=1)]),
+            item('base',weight=30,max_load=14,delivery_order=3),
+            item('middle',weight=8,max_load=6,delivery_order=2)])
+        result=solve(req,time_limit=.5)
+        self.assertEqual(len(result.placed_boxes),3)
+        self.assertEqual({b.id:b.y for b in result.placed_boxes},{'base':0,'middle':1,'top':2})
+        self.assertTrue(result.validate_layout())
+        req.boxes[1].max_load=13
+        restricted=solve(req,time_limit=.5)
+        self.assertEqual(len(restricted.placed_boxes),2)
+        self.assertTrue(restricted.validate_layout())
+
+    def test_large_custom_boxes_offer_top_space_to_chair_and_bag(self):
+        rows = json.loads((Path(__file__).resolve().parent.parent / 'testes' / 'carreto_com_objeto_azul.json').read_text(encoding='utf-8'))
+        for index in range(2):
+            rows.append(item(f'cube-{index}', 'custom', max_load=60, weight=10,
+                             parts=[dict(width=1, height=1, depth=1)]).model_dump())
+        truck = solve(OptimizeRequest(truck_w=2.4, truck_h=2.4, truck_d=6, boxes=rows))
+        self.assertEqual(len(truck.placed_boxes), len(rows))
+        self.assertTrue(truck.validate_layout())
+        for obj in truck.placed_boxes:
+            if obj.data.shape in ('chair', 'bag'):
+                base, _ = truck.contact(obj, truck.placed_boxes)
+                self.assertIn(base.id, {'cube-0', 'cube-1'})
+
     def test_volume_priority_keeps_dominant_cargo_and_blue_assembly(self):
         rows = json.loads((Path(__file__).resolve().parent.parent / 'testes' / 'carreto_com_objeto_azul.json').read_text(encoding='utf-8'))
         req = OptimizeRequest(truck_w=2.4, truck_h=2.4, truck_d=6,
                               boxes=[BoxInput.model_validate(row) for row in rows])
         result = solve(req, time_limit=8)
         ids = {b.id for b in result.placed_boxes}
-        self.assertIn('volume-principal', ids)
-        self.assertIn('azul-tres-blocos', ids)
+        self.assertEqual(ids, {row['id'] for row in rows})
         self.assertTrue(result.validate_layout())
 
     def test_empty_space_under_table_and_leg_collision(self):

@@ -3,6 +3,7 @@ import { useState } from 'react';
 
 import AddBoxModal from '../Modal/Box/AddBoxModal';
 import SavedLayouts from '../SavedLayouts';
+import ObjectProperties from './ObjectProperties';
 
 const Panel = ({ title, children }) => (
     <div className={styles.controlPanel}>
@@ -39,7 +40,19 @@ const CanvasControls = ({
     const cargoItems = [...(truckInfo?.boxes || []), ...(truckInfo?.unpackedBoxes || [])];
     const totalBoxes = cargoItems.length;
     const visibleBoxes = truckInfo?.boxes?.filter(b => b.y < currentCutoffY).length || 0;
-    const selectedBox = truckInfo?.boxes?.find(b => b.id === selectedBoxId) || null;
+    const selectedBox = cargoItems.find(b => b.id === selectedBoxId) || null;
+
+    const updateProperties = properties => {
+        const update = items => items.map(item => item.id === selectedBoxId ? { ...item, ...properties } : item);
+        setTruckInfo(prev => ({
+            ...prev,
+            boxes: update(prev.boxes || []),
+            unpackedBoxes: update(prev.unpackedBoxes || []),
+            transportAssessment: null,
+            staticStability: null,
+            propertiesChanged: true
+        }));
+    };
 
     const handleDimensionChange = (field, value) => {
         const num = parseFloat(value);
@@ -84,7 +97,9 @@ const CanvasControls = ({
         setTruckInfo(prev => ({
             ...prev,
             transportAssessment: null,
-            boxes: (prev?.boxes || []).filter(b => b.id !== boxId)
+            boxes: (prev?.boxes || []).filter(b => b.id !== boxId),
+            unpackedBoxes: (prev.unpackedBoxes || []).filter(b => b.id !== boxId),
+            unpackedCount: (prev.unpackedBoxes || []).filter(b => b.id !== boxId).length
         }));
         setSelectedBoxId(null);
     };
@@ -128,6 +143,7 @@ const CanvasControls = ({
             setTruckInfo(prev => ({
                 ...prev,
                 boxes: data.packed_boxes,
+                propertiesChanged: false,
                 transportAssessment: data.transport_assessment,
                 staticStability: data.static_stability,
                 unpackedCount: data.unpacked_boxes?.length || 0,
@@ -147,7 +163,7 @@ const CanvasControls = ({
     return (
         <>
             <aside className={styles.sidebar}>
-                <SavedLayouts hasTrucks={hasTrucks} getScene={getScene} onLoad={onLoadScene} onExport={onExportPng} />
+                <SavedLayouts hasTrucks={hasTrucks} getScene={getScene} onLoad={onLoadScene} onExport={onExportPng} isOptimizing={isOptimizing} />
                 {selectedTruckId && truckInfo ? (
                     <>
                         <Panel title={"Caminhão Selecionado: " + truckInfo?.name}>
@@ -189,7 +205,38 @@ const CanvasControls = ({
                             </div>
                         </Panel>
 
+                        {totalBoxes > 0 && <Panel title="Objeto selecionado">
+                            <label className={styles.inputLabel}>Editar propriedades do objeto
+                                <select className={styles.numberInput} value={selectedBoxId ?? ''} onChange={event => setSelectedBoxId(event.target.value || null)}>
+                                    <option value="">Selecione um objeto</option>
+                                    {cargoItems.map(item => <option key={item.id} value={item.id}>{item.name || item.id}</option>)}
+                                </select>
+                            </label>
+                            {selectedBox && <>
+                                <div className={styles.label}>
+                                    <span>Dimensões:</span>
+                                    <span>{selectedBox.width}m x {selectedBox.height}m x {selectedBox.depth}m</span>
+                                </div>
+
+                                <ObjectProperties
+                                    key={JSON.stringify([selectedTruckId, selectedBox.id, selectedBox.weight, selectedBox.max_load, selectedBox.delivery_order])}
+                                    object={selectedBox} disabled={isOptimizing} onSave={updateProperties} />
+                                <div className={styles.label}>
+                                    <span>Excluir objeto:</span>
+                                    <button
+                                        className={styles.deleteButton}
+                                        onClick={() => handleDeleteBox(selectedBox.id)}
+                                    >
+                                        Excluir Caixa
+                                    </button>
+                                </div>
+                            </>}
+                        </Panel>}
+
                         <Panel title="Otimização de Espaço">
+                            {truckInfo.propertiesChanged && <p role="status" className={styles.stats}>
+                                Propriedades atualizadas. Organize a carga novamente para verificar a disposição.
+                            </p>}
                             <button
                                 onClick={handleOptimizeLoad}
                                 disabled={isOptimizing || totalBoxes === 0}
@@ -400,24 +447,6 @@ const CanvasControls = ({
                     </Panel>
                 )}
 
-                {selectedBox && (
-                    <Panel title={"Objeto selecionado: " + (selectedBox.name || selectedBox.id)}>
-                        <div className={styles.label}>
-                            <span>Dimensões:</span>
-                            <span>{selectedBox.width}m x {selectedBox.height}m x {selectedBox.depth}m</span>
-                        </div>
-
-                        <div className={styles.label}>
-                            <span>Excluir objeto:</span>
-                            <button
-                                className={styles.deleteButton}
-                                onClick={() => handleDeleteBox(selectedBox.id)}
-                            >
-                                Excluir Caixa
-                            </button>
-                        </div>
-                    </Panel>
-                )}
             </aside>
 
             {showAddBoxModal && (

@@ -18,6 +18,16 @@ def placed(data, x=0, y=0, z=0):
 
 
 class PackingTests(unittest.TestCase):
+    def test_light_base_can_support_heavier_cargo_up_to_cumulative_limit(self):
+        truck = TruckBin(1, 3, 1)
+        base = placed(box('base', weight=12, max_load=60, order=3))
+        middle = placed(box('middle', weight=15, max_load=45, order=2), y=1)
+        top = placed(box('top', weight=45, order=1), y=2)
+        truck.placed_boxes = [base, middle, top]
+        self.assertTrue(truck.validate_layout())
+        base.max_load = 59
+        self.assertFalse(truck.validate_layout())
+
     def test_heavy_below_light(self):
         req = OptimizeRequest(truck_w=1, truck_h=2, truck_d=1,
                               boxes=[box('light', weight=2), box('heavy', weight=20)])
