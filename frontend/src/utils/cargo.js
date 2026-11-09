@@ -2,7 +2,7 @@
 export const shapeNames = {
     box: 'Caixa / armário', table: 'Mesa', chair: 'Cadeira', sofa: 'Sofá', bed: 'Cama',
     fridge: 'Geladeira', stove: 'Fogão', washer: 'Máquina de lavar', drum: 'Tambor / cilindro',
-    sphere: 'Bola / esfera', bag: 'Saco cheio', polygon: 'Prisma poligonal', custom: 'Criar meu objeto'
+    sphere: 'Bola / esfera', bag: 'Saco de lixo cheio', polygon: 'Prisma poligonal', custom: 'Criar meu objeto'
 };
 export const shapeDefaults = {
     box: [1,1,1,10], table: [1.6,.8,.9,25], chair: [.5,.95,.5,5], sofa: [2,.85,.85,45],
@@ -23,10 +23,13 @@ export function presetParts(shape, width, height, depth) {
     if (shape === 'sofa') parts = [p(0,0,0,1,.25,1),p(0,.25,0,1,.75,.18),p(0,.25,.18,.15,.4,.82),p(.85,.25,.18,.15,.4,.82),p(.15,.25,.18,.7,.12,.82)];
     else if (shape === 'bed') parts = [p(0,0,0,1,1,.06),p(0,0,.06,1,.35,.94),p(0,.35,.06,1,.25,.94)];
     else if (shape === 'stove') parts = [p(0,0,0,1,.96,1), ...[.12,.62].flatMap(x => [.12,.62].map(z => p(x,.96,z,.26,.04,.26,'cylinder')))];
-    else parts = [p(0,0,0,1,1,1,shape === 'sphere' || shape === 'bag' ? 'ellipsoid' : shape === 'drum' ? 'cylinder' : shape === 'polygon' ? 'prism' : 'box')];
+    else parts = [p(0,0,0,1,1,1,shape === 'bag' ? 'bag' : shape === 'sphere' ? 'ellipsoid' : shape === 'drum' ? 'cylinder' : shape === 'polygon' ? 'prism' : 'box')];
     return parts.map(p => ({...p,x:p.x*width,y:p.y*height,z:p.z*depth,width:p.width*width,height:p.height*height,depth:p.depth*depth}));
 }
 export function partsOf(object) {
+    if (object.shape === 'bag' && object.parts?.length === 1 && object.parts[0].kind === 'ellipsoid') {
+        return [{...object.parts[0], kind:'bag'}];
+    }
     return object.parts || presetParts(object.shape || 'box',object.width,object.height,object.depth);
 }
 export function normalizeCargo(raw, index = 0) {
@@ -52,7 +55,7 @@ export function normalizeCargo(raw, index = 0) {
     const eps = Math.min(result.width,result.height,result.depth)*1e-8;
     for (const p of result.parts) {
         if (['x','y','z','width','height','depth'].some(k => !Number.isFinite(p[k])) || Math.min(p.width,p.height,p.depth) <= 0 || Math.min(p.x,p.y,p.z) < 0) throw new Error('Confira dimensões e posições das peças.');
-        if (!['box','ellipsoid','cylinder','prism'].includes(p.kind) || !Number.isInteger(p.sides) || p.sides < 3 || p.sides > 12 || !Number.isInteger(p.yaw) || p.yaw < 0 || p.yaw > 3) throw new Error('Forma, lados (3 a 12) ou rotação da peça inválidos.');
+        if (!['box','ellipsoid','cylinder','prism','bag'].includes(p.kind) || !Number.isInteger(p.sides) || p.sides < 3 || p.sides > 12 || !Number.isInteger(p.yaw) || p.yaw < 0 || p.yaw > 3) throw new Error('Forma, lados (3 a 12) ou rotação da peça inválidos.');
     }
     for (const [a,s] of [['x','width'],['y','height'],['z','depth']]) {
         if (Math.abs(Math.min(...result.parts.map(p => p[a]))) > eps || Math.abs(Math.max(...result.parts.map(p => p[a]+p[s]))-result[s]) > eps) throw new Error('As peças devem começar em (0,0,0) e coincidir com as dimensões externas.');

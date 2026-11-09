@@ -110,7 +110,7 @@ class TruckBin:
             if base is None:
                 left, right, back, front = b.x, b.x + b.w, b.z, b.z + b.d
             else:
-                if b.weight > base.weight or b.delivery_order > base.delivery_order:
+                if b.delivery_order > base.delivery_order:
                     return False
                 left, right = max(b.x, base.x), min(b.x + b.w, base.x + base.w)
                 back, front = max(b.z, base.z), min(b.z + b.d, base.z + base.d)
@@ -265,8 +265,10 @@ def solve(req, time_limit=8.0):
     def quality(truck):
         report = assess_transport(truck, truck.placed_boxes)
         tipping_cases = sum(case["tipping"] for issue in report["issues"] for case in issue["cases"])
-        return (len(truck.placed_boxes), round(sum(b.vol for b in truck.placed_boxes), 8),
-                -tipping_cases, -sum(b.weight * (b.y + b.h / 2) for b in truck.placed_boxes))
+        mass = sum(b.weight for b in truck.placed_boxes)
+        center_height = sum(b.weight * (b.y + b.h / 2) for b in truck.placed_boxes) / mass if mass else 0
+        return (round(sum(b.vol for b in truck.placed_boxes), 8), len(truck.placed_boxes),
+                -tipping_cases, -center_height)
 
     for index, key in enumerate(keys):
         truck = TruckBin(req.truck_w, req.truck_h, req.truck_d, req.transport)
@@ -292,7 +294,7 @@ def solve(req, time_limit=8.0):
     if not best.validate_layout():
         raise RuntimeError('A busca produziu uma disposição inválida.')
     best.search_truncated = truncated or monotonic() >= deadline
-    best.search_details = dict(column_alternatives=len(layouts), repair_attempts=repair_attempts)
+    best.search_details = dict(column_alternatives=len(layouts), repair_attempts=repair_attempts, objective="volume_then_count")
     return best
 
 
@@ -320,7 +322,7 @@ def optimize_load(req: OptimizeRequest):
         'packing_geometry': 'conservative_part_envelopes' if curved_ids else 'cuboids',
         'static_stability': {'validated': not curved_ids, 'minimum_base_support': 1.0,
                              'curved_object_ids': curved_ids,
-                             'note': 'Contornos de proteção verificados. Apoio curvo, rolamento e deformação não validados; bases planas podem usar apoios verificados; bases arredondadas ficam no piso. Objetos com curvas não recebem carga.' if curved_ids else '',
+                             'note': 'Contornos de proteção verificados. Bases arredondadas elevadas exigem equilíbrio estático no apoio. Para esferas, o modelo exige contenção nos dois eixos horizontais. No piso, rolamento não avaliado. Deformação e efeitos de manobras não avaliados. Objetos com curvas não recebem carga.' if curved_ids else '',
                              'model': 'conservative_part_envelopes' if curved_ids else 'rigid_parts' if any(b.parts for b in req.boxes) else 'solid_boxes'},
         'search_details': truck.search_details,
         'transport_assessment': ({'status': 'not_evaluated', 'issues': [],

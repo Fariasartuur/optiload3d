@@ -102,7 +102,7 @@ def column_beam(boxes, prototype, deadline, beam_width=32, height_limit=None):
             def rank(state):
                 layout, count, volume = state
                 extent = max((c['z'] + c['d'] for c in layout), default=0)
-                return (-count, -round(volume, 8), round(extent, 8),
+                return (-round(volume, 8), -count, round(extent, 8),
                         sum(c['z'] * c['w'] * c['d'] for c in layout))
             seen, beam = set(), []
             for state in sorted(expanded, key=rank):

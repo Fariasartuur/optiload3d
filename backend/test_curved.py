@@ -51,14 +51,71 @@ class CurvedTests(unittest.TestCase):
         self.assertEqual(result['packed_boxes'][0]['parts'][0]['kind'],'ellipsoid')
         self.assertEqual(result['transport_assessment']['status'],'not_evaluated')
 
+    def test_solver_elevates_contained_sphere_with_rated_platform(self):
+        base = cargo('box', weight=12, max_load=15, delivery_order=2)
+        sphere = cargo('sphere', weight=15, delivery_order=1)
+        req = OptimizeRequest(truck_w=1, truck_h=2, truck_d=1, boxes=[base, sphere])
+        result = optimize_load(req)
+        packed = {b['id']: b for b in result['packed_boxes']}
+        self.assertEqual(packed['sphere']['y'], 1)
+        self.assertEqual(result['unloading_order'], ['sphere', 'box'])
+        base.max_load = 14
+        self.assertEqual(optimize_load(req)['packed_count'], 1)
+
+    def test_rounded_support_depends_on_shape_and_available_stops(self):
+        truck = CompoundTruck(1, 2, 2)
+        base = RigidBox(cargo('box', max_load=20))
+        sphere = RigidBox(cargo('sphere'))
+        sphere.y = 1
+        # The width is confined, but the free end still permits rolling.
+        self.assertFalse(truck.check_physics([base, sphere]))
+        stop = RigidBox(BoxInput(id='stop', width=1, height=2, depth=1, color='red'))
+        stop.z = 1
+        self.assertTrue(truck.check_physics([base, sphere, stop]))
+        # The end stop has to remain until the sphere is removed.
+        self.assertIsNone(truck.unloading_sequence([base, sphere, stop]))
+        stop.z += .01
+        self.assertFalse(truck.check_physics([base, sphere, stop]))
+        oval = RigidBox(BoxInput(id='oval', shape='sphere', width=1, depth=1,
+                                 height=.5, color='blue'))
+        oval.y = 1
+        self.assertTrue(truck.check_physics([base, oval]))
+        oval.x = .2
+        self.assertFalse(truck.check_physics([base, oval]))
+
+    def test_upright_ellipsoid_needs_containment_even_on_rated_base(self):
+        bag = RigidBox(BoxInput(id='oval', shape='sphere', width=.5, height=.8,
+                                depth=.5, color='blue'))
+        base = RigidBox(BoxInput(id='base', width=.5, height=1, depth=.5,
+                                 max_load=20, color='red'))
+        bag.y = 1
+        snug = CompoundTruck(.5, 2, .5)
+        snug.placed_boxes = [base, bag]
+        self.assertTrue(snug.validate_layout())
+        open_side = CompoundTruck(1, 2, .5)
+        open_side.placed_boxes = [base, bag]
+        self.assertFalse(open_side.validate_layout())
+
     def test_flat_cylinder_fits_above_box_when_floor_is_full(self):
-        base=cargo('box',weight=30,max_load=20,delivery_order=2)
-        drum=cargo('drum',weight=10,delivery_order=1)
+        base=cargo('box',weight=12,max_load=60,delivery_order=2)
+        drum=cargo('drum',weight=15,delivery_order=1)
         result=optimize_load(OptimizeRequest(truck_w=1,truck_h=2,truck_d=1,boxes=[base,drum]))
         self.assertEqual(result['packed_count'],2)
         packed={b['id']:b for b in result['packed_boxes']}
         self.assertAlmostEqual(packed['drum']['y'],1)
         self.assertEqual(result['unloading_order'],['drum','box'])
+
+    def test_bag_cannot_go_under_a_separately_supported_table(self):
+        table = RigidBox(BoxInput(id='table', shape='table', width=2, height=2, depth=2, color='red'))
+        bag = RigidBox(cargo('bag', max_load=100))
+        bag.x = bag.z = .5
+        truck = CompoundTruck(3, 3, 3)
+        truck.placed_boxes = [table, bag]
+        self.assertFalse(collides(table, bag, truck.eps))
+        self.assertEqual(bag.max_load, 0)
+        self.assertFalse(truck.validate_layout())
+        bag.x = 2
+        self.assertTrue(truck.validate_layout())
 
     def test_invalid_primitive_parameters_rejected(self):
         for extra in [dict(kind='unknown'),dict(kind='prism',sides=2),dict(kind='prism',sides=13),dict(kind='prism',yaw=4)]:
