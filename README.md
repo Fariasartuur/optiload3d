@@ -21,7 +21,7 @@ O OptiLoad 3D é uma aplicação web para planejar o carregamento de caminhões.
 - **Organização automática** (`Organizar Carga`): sem sobreposição, com apoio integral, limite de peso por pilha, centro de massa baixo e retirada em ordem pela porta.
 - **Diagnóstico de transporte**: aponta risco de deslizamento e tombamento em freadas e curvas (para cargas só de caixas).
 - **Visualização 3D**: rotação, zoom, seleção de objetos e **corte de altura** para inspecionar as camadas internas.
-- **Rotação automática**: depois de 5 s sem interação, a câmera gira devagar em volta do caminhão selecionado (ou de todos). Qualquer clique, arraste, scroll ou tecla interrompe. O botão ao lado do `+` liga e desliga, e a escolha fica salva no navegador.
+- **Rotação automática**: depois de 5 s sem interação, a câmera gira devagar em volta do caminhão selecionado (ou de todos) e ajusta o zoom aos poucos até ele caber inteiro na tela. Qualquer clique, arraste, scroll ou tecla interrompe. O botão ao lado do `+` liga e desliga, e a escolha fica salva no navegador.
 - **Organizações salvas no banco de dados** (salvar, substituir, abrir e excluir), além de **importação/exportação em JSON** e **exportação da vista em PNG**.
 
 ## 🛠️ Tecnologias

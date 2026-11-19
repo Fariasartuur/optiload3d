@@ -191,14 +191,19 @@ const CanvasPage = () => {
 
     const gridSize = calculateGridSize(trucks);
 
-    // Ponto em volta do qual a câmera gira quando parada: o caminhão selecionado ou o centro de todos.
+    // Região que a câmera enquadra e em volta da qual gira quando parada:
+    // o caminhão selecionado ou o conjunto de todos.
     const rotationFocus = useMemo(() => {
         const targets = activeTruck ? [activeTruck] : trucks;
         if (!targets.length) return null;
         const xs = targets.flatMap(t => [(t.position?.x || 0) - t.width / 2, (t.position?.x || 0) + t.width / 2]);
         const zs = targets.flatMap(t => [(t.position?.z || 0) - t.depth / 2, (t.position?.z || 0) + t.depth / 2]);
         const height = Math.max(...targets.map(t => t.height));
-        return [(Math.min(...xs) + Math.max(...xs)) / 2, height / 2, (Math.min(...zs) + Math.max(...zs)) / 2];
+        const [minX, maxX, minZ, maxZ] = [Math.min(...xs), Math.max(...xs), Math.min(...zs), Math.max(...zs)];
+        return {
+            center: [(minX + maxX) / 2, height / 2, (minZ + maxZ) / 2],
+            radius: Math.hypot(maxX - minX, height, maxZ - minZ) / 2,
+        };
     }, [activeTruck, trucks]);
 
     return (
