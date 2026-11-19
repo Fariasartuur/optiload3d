@@ -11,7 +11,7 @@ python -B -m unittest discover -s backend -p "test_*.py" -v
 
 `main.py` mantém a API. `search.py` implementa composição de colunas por subconjuntos de alturas, busca em feixe (32 disposições candidatas) e remoção/reconstrução de pilhas. Não consulta arquivos de referência e não interpreta nomes ou cores das caixas. Quatro ordenações gulosas continuam como alternativas iniciais.
 
-O objetivo é, nesta ordem: quantidade, volume, menos ocorrências de tombamento nos cenários de transporte e menor momento vertical do peso. Como solicitado, a necessidade de contenção não exclui caixas. O orçamento aproximado de busca é de oito segundos, dividido entre as fases. Uma validação em andamento e o diagnóstico final podem ultrapassar esse tempo. A solução permanece heurística, sem prova de ótimo global.
+O objetivo é, nesta ordem: volume transportado, quantidade, menos ocorrências de tombamento nos cenários de transporte e menor momento vertical do peso. Como solicitado, a necessidade de contenção não exclui caixas. O orçamento aproximado de busca é de oito segundos, dividido entre as fases. Uma validação em andamento e o diagnóstico final podem ultrapassar esse tempo. A solução permanece heurística, sem prova de ótimo global.
 
 ## Geometria, peso e descarga
 
