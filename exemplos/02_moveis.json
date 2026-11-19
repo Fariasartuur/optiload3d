@@ -1,0 +1,96 @@
+[
+  {
+    "id": "mesa-jantar",
+    "name": "Mesa de jantar",
+    "shape": "table",
+    "width": 1.6,
+    "height": 0.78,
+    "depth": 0.9,
+    "weight": 30,
+    "delivery_order": 2,
+    "max_load": 20,
+    "color": "#8e5a2b",
+    "allow_rotation": true
+  },
+  {
+    "id": "cadeira-1",
+    "name": "Cadeira 1",
+    "shape": "chair",
+    "width": 0.45,
+    "height": 0.95,
+    "depth": 0.5,
+    "weight": 5,
+    "delivery_order": 2,
+    "max_load": 0,
+    "color": "#a0522d",
+    "allow_rotation": true
+  },
+  {
+    "id": "cadeira-2",
+    "name": "Cadeira 2",
+    "shape": "chair",
+    "width": 0.45,
+    "height": 0.95,
+    "depth": 0.5,
+    "weight": 5,
+    "delivery_order": 2,
+    "max_load": 0,
+    "color": "#a0522d",
+    "allow_rotation": true
+  },
+  {
+    "id": "caixa-utensilios",
+    "name": "Caixa de utensílios",
+    "shape": "box",
+    "width": 0.6,
+    "height": 0.4,
+    "depth": 0.4,
+    "weight": 12,
+    "delivery_order": 1,
+    "max_load": 30,
+    "color": "#2ecc71",
+    "allow_rotation": true
+  },
+  {
+    "id": "banco-madeira",
+    "name": "Banco de madeira",
+    "shape": "custom",
+    "width": 1.2,
+    "height": 0.45,
+    "depth": 0.35,
+    "weight": 9,
+    "delivery_order": 1,
+    "max_load": 15,
+    "color": "#c49a6c",
+    "allow_rotation": true,
+    "parts": [
+      {
+        "x": 0,
+        "y": 0,
+        "z": 0,
+        "width": 0.05,
+        "height": 0.4,
+        "depth": 0.35,
+        "kind": "box"
+      },
+      {
+        "x": 1.15,
+        "y": 0,
+        "z": 0,
+        "width": 0.05,
+        "height": 0.4,
+        "depth": 0.35,
+        "kind": "box"
+      },
+      {
+        "x": 0,
+        "y": 0.4,
+        "z": 0,
+        "width": 1.2,
+        "height": 0.05,
+        "depth": 0.35,
+        "kind": "box"
+      }
+    ]
+  }
+]
