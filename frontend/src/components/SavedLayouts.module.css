@@ -48,3 +48,26 @@
     justify-content: center;
     gap: 8px;
 }
+
+.row3 {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr;
+    gap: 8px;
+}
+
+.danger {
+    background-color: rgba(231, 76, 60, 0.15);
+    border-color: rgba(231, 76, 60, 0.4);
+    color: #ff7b6e;
+}
+
+.danger:hover:not(:disabled) {
+    background-color: rgba(231, 76, 60, 0.28);
+    border-color: rgba(231, 76, 60, 0.6);
+}
+
+.row3 button:disabled,
+.row button:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}

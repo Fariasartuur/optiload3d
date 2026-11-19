@@ -17,7 +17,7 @@ except ImportError:  # SQLite local funciona sem o driver remoto.
 
 DATABASE_ERRORS = (sqlite3.Error,) + ((psycopg.Error,) if psycopg else ())
 
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, HTTPException, Response
 from pydantic import BaseModel, ConfigDict, Field, model_validator
 try:
     from .shapes import GeometryInput
@@ -205,3 +205,36 @@ def load_layout(identifier: str):
         raise HTTPException(404, 'Organização não encontrada.')
     return dict(id=row['id'], name=row['name'], created_at=row['created_at'],
                 schema_version=row['schema_version'], scene=json.loads(row['scene_json']))
+
+
+@router.put('/{identifier}')
+def replace_layout(identifier: str, payload: SaveLayout):
+    """Substitui nome e cena de uma organização existente; a data passa a ser a do novo salvamento."""
+    saved = datetime.now(timezone.utc).isoformat()
+    scene = payload.scene.model_dump()
+    box_count = sum(len(t['boxes']) for t in scene['trucks'])
+    try:
+        with closing(connect()) as db, db:
+            cursor = db.execute('UPDATE layouts SET name = ?, created_at = ?, schema_version = ?, truck_count = ?, '
+                                'box_count = ?, scene_json = ? WHERE id = ?',
+                                (payload.name, saved, 1, len(scene['trucks']), box_count,
+                                 json.dumps(scene, ensure_ascii=False, allow_nan=False), identifier))
+            updated = cursor.rowcount
+    except DATABASE_ERRORS as exc:
+        raise HTTPException(503, 'Não foi possível substituir a organização.') from exc
+    if not updated:
+        raise HTTPException(404, 'Organização não encontrada.')
+    return dict(id=identifier, name=payload.name, created_at=saved,
+                truck_count=len(scene['trucks']), box_count=box_count)
+
+
+@router.delete('/{identifier}', status_code=204)
+def delete_layout(identifier: str):
+    try:
+        with closing(connect()) as db, db:
+            deleted = db.execute('DELETE FROM layouts WHERE id = ?', (identifier,)).rowcount
+    except DATABASE_ERRORS as exc:
+        raise HTTPException(503, 'Não foi possível excluir a organização.') from exc
+    if not deleted:
+        raise HTTPException(404, 'Organização não encontrada.')
+    return Response(status_code=204)
