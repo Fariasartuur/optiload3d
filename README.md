@@ -1,85 +1,196 @@
 # OptiLoad 3D 🚛📦
 
-OptiLoad 3D é uma aplicação web para otimização e visualização de empacotamento de cargas (3D Bin Packing Problem). Ele permite que os usuários configurem as dimensões de baús de caminhões, adicionem caixas (manualmente ou via importação JSON) e utilizem um motor matemático para calcular a disposição espacial ideal das caixas, maximizando o volume utilizado e evitando sobreposições.
+**Otimização inteligente de cargas com visualização 3D.**
 
-## 🛠️ Tecnologias Utilizadas
+O OptiLoad 3D é uma aplicação web para planejar o carregamento de caminhões. Você informa as dimensões do baú e os objetos a transportar (com peso, ordem de entrega e quanto peso cada um aguenta por cima). Um motor de otimização em Python calcula onde cada objeto deve ficar, e o resultado aparece em uma cena 3D interativa.
 
-**Frontend:**
-* [React](https://reactjs.org/) (via Vite)
-* [Three.js](https://threejs.org/) & [@react-three/fiber](https://docs.pmnd.rs/react-three-fiber/) (Renderização 3D)
-* CSS Modules (Estilização isolada)
+É um problema de **3D Bin Packing** com restrições logísticas: além de não sobrepor objetos, a disposição precisa ser fisicamente estável e permitir descarregar na ordem das entregas.
 
-**Backend:**
-* [Python 3](https://www.python.org/)
-* [FastAPI](https://fastapi.tiangolo.com/) (API REST de alta performance)
-* Heurística com múltiplas ordenações, detecção de colisão e equilíbrio estático
+🔗 **Aplicação publicada:** https://optiload3d.vercel.app
+
+> Projeto acadêmico da disciplina de Computação Gráfica (UNASP).
 
 ---
 
-## 🚀 Como Executar o Projeto Localmente
+## ✨ Funcionalidades
 
-Para rodar a aplicação, você precisará iniciar o servidor do Backend (Python) e o servidor do Frontend (React) simultaneamente em dois terminais separados.
+- **Vários caminhões na mesma cena**, cada um com largura, altura e comprimento próprios.
+- **Objetos prontos**: caixa, mesa, cadeira, sofá, cama, geladeira, fogão, máquina de lavar, tambor, bola, saco e prisma poligonal.
+- **Editor de objetos personalizados**: monte formas compostas de até 24 peças (bloco, esfera/oval, cilindro e prisma), movendo, redimensionando e girando (90°) cada peça direto na cena 3D.
+- **Restrições logísticas** por objeto: peso, ordem de entrega, carga máxima sobre ele e permissão de giro horizontal.
+- **Organização automática** (`Organizar Carga`): sem sobreposição, com apoio integral, limite de peso por pilha, centro de massa baixo e retirada em ordem pela porta.
+- **Diagnóstico de transporte**: aponta risco de deslizamento e tombamento em freadas e curvas (para cargas só de caixas).
+- **Visualização 3D**: rotação, zoom, seleção de objetos e **corte de altura** para inspecionar as camadas internas.
+- **Importação de cargas em JSON**, **organizações salvas** no banco e **exportação** da cena em JSON ou PNG.
 
-### Pré-requisitos
-* [Node.js](https://nodejs.org/) (Versão 16+ recomendada)
-* [Python](https://www.python.org/downloads/) (Versão 3.8+ recomendada)
+## 🛠️ Tecnologias
 
----
+| Camada | Tecnologias |
+| --- | --- |
+| Frontend | React 19, Vite, JavaScript/JSX, CSS Modules, Three.js, React Three Fiber, Drei |
+| Backend | Python 3.12, FastAPI, Pydantic, Uvicorn |
+| Banco de dados | SQLite (local) ou PostgreSQL (produção, via `DATABASE_URL`) |
+| Deploy | Vercel (frontend estático + função Python em `api/index.py`) |
 
-### Passo 1: Configurando o Backend (Motor de Otimização)
+## 📁 Estrutura do repositório
 
-1. Abra um terminal na pasta `backend`, onde se encontra o arquivo `main.py`.
-2. Crie um ambiente virtual para isolar as dependências:
-   ```bash
-   python -m venv venv
-   ```
-3. Ative o ambiente virtual:
-   * **Windows:**
-     ```bash
-     venv\Scripts\activate
-     ```
-   * **Linux / macOS:**
-     ```bash
-     source venv/bin/activate
-     ```
-4. Instale as bibliotecas necessárias:
-   ```bash
-   pip install fastapi "uvicorn[standard]" pydantic
-   ```
-5. Inicie o servidor da API:
-   ```bash
-   uvicorn main:app --reload
-   ```
-   *O backend estará rodando em `http://localhost:8000`.*
-
----
-
-### Passo 2: Configurando o Frontend (Interface Web)
-
-1. Abra um **novo** terminal na pasta raiz do projeto React (onde está localizado o `package.json`).
-2. Instale as dependências do Node.js:
-   ```bash
-   npm install
-   ```
-3. Inicie o servidor de desenvolvimento:
-   ```bash
-   npm run dev
-   ```
-4. Acesse a aplicação no seu navegador através do link gerado no terminal (geralmente `http://localhost:5173` ou `http://localhost:3000`).
+```text
+optiload3d/
+├── api/index.py          # Ponto de entrada da função Python na Vercel
+├── backend/
+│   ├── main.py           # API FastAPI e motor para caixas simples
+│   ├── search.py         # Busca em feixe por colunas/pilhas
+│   ├── compound.py       # Motor para objetos compostos e formas curvas
+│   ├── shapes.py         # Catálogo de formas e validação de peças
+│   ├── transport.py      # Diagnóstico de freadas e curvas
+│   ├── storage.py        # Organizações salvas (SQLite/PostgreSQL)
+│   └── test_*.py         # Testes do backend
+├── frontend/
+│   └── src/
+│       ├── pages/        # Página principal com a cena 3D
+│       ├── components/   # Caminhão, objetos, editor, modais e painéis
+│       └── utils/        # Normalização de cargas, modelagem e arquivos
+├── exemplos/             # Cargas prontas para importar (veja abaixo)
+└── vercel.json
+```
 
 ---
 
-## 🎮 Como Usar
+## 🚀 Como executar localmente
 
-1. **Adicionar Caminhão:** Clique no botão flutuante `+` para criar um novo baú, definindo Largura (X), Altura (Y) e Comprimento (Z).
-2. **Adicionar Caixas:** Com o caminhão selecionado, clique em "Adicionar" no painel lateral. Você pode inserir caixas manualmente ou importar um arquivo `.json` com uma lista de caixas.
-3. **Otimizar Carga:** Clique no botão **"Organizar Carga (Auto-Pack)"**. O frontend enviará os dados para o backend em Python, que calculará a melhor posição matemática para cada caixa.
-4. **Visualização:** Utilize o mouse para rotacionar (clique e arraste), dar zoom (scroll) ou mover a câmera. Ajuste a barra de "Altura de Corte" para inspecionar as camadas internas da carga.
+Pré-requisitos: **Python 3.12+** e **Node.js 20+**.
+
+São dois processos: a API (porta 8000) e o frontend (porta 5173). O Vite já encaminha as chamadas para `/api` para a porta 8000.
+
+### 1. Backend (na raiz do repositório)
+
+```bash
+python -m venv backend/venv
+
+# Windows
+backend\venv\Scripts\activate
+# Linux / macOS
+source backend/venv/bin/activate
+
+pip install -r backend/requirements.txt
+python -m uvicorn backend.main:app --reload
+```
+
+A API fica em `http://localhost:8000` (documentação interativa em `http://localhost:8000/docs`). Sem `DATABASE_URL`, as organizações salvas vão para um SQLite local em `backend/data/`.
+
+### 2. Frontend (em outro terminal)
+
+```bash
+cd frontend
+npm install
+npm run dev
+```
+
+Acesse `http://localhost:5173`.
 
 ---
 
-## 🧠 Sobre o Algoritmo
+## 🎮 Como usar
 
-O motor compara quatro ordenações de caixas, composições de pilhas e disposições alternativas por busca em feixe. Em seguida, remove e reconstrói pilhas para tentar melhorar a solução, com rotação horizontal opcional. Prioriza a **quantidade de caixas**, depois o volume e, por último, a redução do centro de massa vertical. É uma heurística: não prova o máximo global.
+1. **Adicionar caminhão:** clique em `+` e informe largura (X), altura (Y) e comprimento (Z) em metros.
+2. **Adicionar objetos:** com o caminhão selecionado, escolha um tipo pronto, crie um objeto no editor ou **importe um JSON** (veja `exemplos/`).
+3. **Ajustar propriedades:** peso (kg), ordem de entrega e carga máxima sobre o objeto (kg).
+4. **Organizar:** clique em **Organizar Carga (Auto-Pack)**. Objetos que não couberem ficam listados no painel e entram de novo na próxima tentativa.
+5. **Inspecionar:** arraste para girar, use a roda do mouse para zoom e a barra **Altura de Corte** para ver as camadas internas.
+6. **Salvar/exportar:** salve a organização ou exporte a cena em JSON ou PNG.
 
-Verifica colisões, apoio, momentos do peso acumulado e uma sequência de descarga compatível com as prioridades. Um diagnóstico separado aponta deslizamento e tombamento em freadas e curvas, mantendo visíveis as caixas que precisam de contenção. O orçamento de busca é de aproximadamente oito segundos; validações em andamento podem ultrapassar esse tempo. Veja [as hipóteses físicas, contrato da API e testes](backend/README.md).
+## 📦 Cargas de exemplo
+
+A pasta [`exemplos/`](exemplos) tem cargas prontas para importar em um caminhão de **2,4 × 2,4 × 6 m**:
+
+| Arquivo | Objetos | O que demonstra |
+| --- | ---: | --- |
+| [`01_ecommerce_entregas.json`](exemplos/01_ecommerce_entregas.json) | 21 | Só caixas, três paradas. As cores indicam a entrega (🟩 1, 🟨 2, 🟦 3) e o vermelho marca itens frágeis, que não recebem peso por cima. A entrega 1 fica mais perto da porta. |
+| [`02_moveis.json`](exemplos/02_moveis.json) | 5 | Objetos compostos: mesa (5 peças), duas cadeiras (6 peças), caixa e um banco personalizado. |
+| [`03_mudanca_residencial.json`](exemplos/03_mudanca_residencial.json) | 17 | Mudança completa: eletrodomésticos, sofá, cama, formas curvas (tambor, bola, saco), prisma hexagonal e caixas. |
+| [`04_carga_excedente.json`](exemplos/04_carga_excedente.json) | 40 | Cerca de 48 m³ de paletes para um baú de 34,56 m³. Parte da carga fica de fora e aparece como não acomodada. |
+
+## 🧾 Formato do JSON de carga
+
+O arquivo é uma **lista de objetos** (ou um único objeto). Medidas em **metros**, pesos em **quilogramas**.
+
+```json
+[
+  {
+    "id": "caixa-1",
+    "name": "Caixa média",
+    "shape": "box",
+    "width": 0.6, "height": 0.5, "depth": 0.5,
+    "weight": 15,
+    "delivery_order": 1,
+    "max_load": 60,
+    "allow_rotation": true,
+    "color": "#2ecc71"
+  }
+]
+```
+
+| Campo | Obrigatório | Descrição |
+| --- | --- | --- |
+| `id` | recomendado | Identificador único. Se faltar, o frontend gera um. |
+| `width`, `height`, `depth` | sim | Dimensões externas (X, Y, Z), maiores que zero. |
+| `shape` | não | `box` (padrão), `table`, `chair`, `sofa`, `bed`, `fridge`, `stove`, `washer`, `drum`, `sphere`, `bag`, `polygon` ou `custom`. |
+| `weight` | não | Peso em kg (padrão 10). |
+| `delivery_order` | não | Inteiro ≥ 1. Menor valor sai primeiro (padrão 1). |
+| `max_load` | não | Peso máximo (kg) aceito acima do objeto. `0` impede empilhar. Vazio em caixas significa "não informado". |
+| `allow_rotation` | não | Permite giro horizontal; a altura nunca muda (padrão `true`). |
+| `color` | não | Cor de exibição em hexadecimal. |
+| `name` | não | Nome exibido na interface. |
+| `parts` | só em `custom` | Peças do objeto: `x`, `y`, `z`, `width`, `height`, `depth`, `kind` (`box`, `ellipsoid`, `cylinder`, `prism`), `sides` (3–12, prismas) e `yaw` (0–3 quartos de volta). As peças começam em (0,0,0), coincidem com as dimensões externas, não se sobrepõem e precisam estar conectadas. |
+
+Formas com peças curvas ou poligonais nunca recebem carga por cima, mesmo que `max_load` seja maior que zero.
+
+## 🧠 Sobre o algoritmo
+
+**Sistema de coordenadas:** X é a largura, Y a altura e Z o comprimento. O piso fica em Y = 0, o fundo do baú em Z = 0 e a porta em Z = comprimento.
+
+O motor é uma **heurística com tempo limitado** (cerca de 8 segundos):
+
+1. Testa quatro ordenações gulosas (por entrega, peso e volume) e dois modos de posicionamento.
+2. Para caixas, monta pilhas/colunas por **busca em feixe** e depois remove e reconstrói pilhas para tentar melhorar o resultado.
+3. Objetos compostos e curvos usam um motor próprio (`compound.py`), com contornos conservadores por peça.
+
+A melhor disposição é escolhida, nesta ordem, por: **maior volume transportado**, **mais objetos**, **menos casos de tombamento** nos cenários de transporte e **centro de massa mais baixo**.
+
+Toda solução precisa respeitar estas restrições:
+
+- sem sobreposição;
+- apoio integral em um único objeto;
+- `max_load` respeitado por toda a pilha acima;
+- objeto de cima não mais pesado que sua base;
+- retirada em linha reta pela porta (+Z) na ordem das entregas.
+
+Não há prova de ótimo global. Hipóteses físicas, limites e o contrato da API estão em [`backend/README.md`](backend/README.md).
+
+## 🧪 Testes
+
+```bash
+# Backend (na raiz, com o venv ativo)
+python -B -m unittest discover -s backend -p "test_*.py"
+
+# Frontend
+node --test frontend/src/utils/*.test.js
+cd frontend && npm run lint && npm run build
+```
+
+> ⚠️ Alguns testes de regressão leem fixtures em `testes/` (`carga_desafio/`, `formatos_referencia.json`, `carga_carreto_variada.json`, `carga_moveis.json`, `carreto_com_objeto_azul.json`). Essa pasta ainda não está versionada; sem ela, esses testes falham com `FileNotFoundError`.
+
+## ☁️ Deploy
+
+O projeto é publicado na Vercel a partir da raiz do repositório. O passo a passo, incluindo o banco PostgreSQL, está em [`PUBLICAR-VERCEL.md`](PUBLICAR-VERCEL.md).
+
+## 📚 Documentação adicional
+
+- [`backend/README.md`](backend/README.md): motor, física, diagnóstico de transporte e API.
+- [`OBJETOS-COMPOSTOS.md`](OBJETOS-COMPOSTOS.md): mesas, cadeiras e formas personalizadas.
+- [`EDITOR-VISUAL.md`](EDITOR-VISUAL.md): editor por mouse e primitivas curvas.
+- [`BUSCA-ORGANIZACAO.md`](BUSCA-ORGANIZACAO.md): revisão da busca e resultados comparativos.
+
+## 👥 Equipe
+
+Artur Farias Salomão · Bartolomeu Gomes Rabelo Neto · Octávio França Koch · Pedro Ribeiro de Oliveira · Victória Ester de Oliveira Jesus
