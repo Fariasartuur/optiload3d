@@ -21,7 +21,7 @@ O OptiLoad 3D é uma aplicação web para planejar o carregamento de caminhões.
 - **Organização automática** (`Organizar Carga`): sem sobreposição, com apoio integral, limite de peso por pilha, centro de massa baixo e retirada em ordem pela porta.
 - **Diagnóstico de transporte**: aponta risco de deslizamento e tombamento em freadas e curvas (para cargas só de caixas).
 - **Visualização 3D**: rotação, zoom, seleção de objetos e **corte de altura** para inspecionar as camadas internas.
-- **Organizações salvas no banco de dados** (nome, lista e reabertura), além de **importação/exportação em JSON** e **exportação da vista em PNG**.
+- **Organizações salvas no banco de dados** (salvar, substituir, abrir e excluir), além de **importação/exportação em JSON** e **exportação da vista em PNG**.
 
 ## 🛠️ Tecnologias
 
@@ -97,7 +97,7 @@ Acesse `http://localhost:5173`.
 3. **Ajustar propriedades:** peso (kg), ordem de entrega e carga máxima sobre o objeto (kg).
 4. **Organizar:** clique em **Organizar Carga (Auto-Pack)**. Objetos que não couberem ficam listados no painel e entram de novo na próxima tentativa.
 5. **Inspecionar:** arraste para girar, use a roda do mouse para zoom e a barra **Altura de Corte** para ver as camadas internas.
-6. **Salvar/exportar:** clique em **Salvar / Exportar** no topo do painel lateral. No modal, dê um nome e clique em **Salvar no banco**; para reabrir, escolha na lista **Organizações salvas** e clique em **Abrir do banco**. Também é possível exportar/abrir a cena em JSON e exportar a vista em PNG.
+6. **Salvar/exportar:** clique em **Salvar / Exportar** no topo do painel lateral. No modal, dê um nome e clique em **Salvar no banco**; se o nome já existir, o sistema pergunta se deve substituir. Para reabrir ou apagar, escolha na lista **Organizações salvas** e clique em **Abrir** ou **Excluir**. Também é possível exportar/abrir a cena em JSON e exportar a vista em PNG.
 
 ## 📦 Cargas de exemplo
 

@@ -18,7 +18,8 @@ async def request(method, path, payload=None):
                'scheme':'http','path':path,'raw_path':path.encode(),'query_string':b'',
                'headers':[(b'content-type',b'application/json')],
                'client':('test',123),'server':('test',80)},receive,send)
-    return output[0]['status'],json.loads(output[1]['body'])
+    body=output[1]['body'] if len(output)>1 else b''
+    return output[0]['status'],json.loads(body) if body else None
 
 
 class StorageTests(unittest.TestCase):
@@ -74,6 +75,40 @@ class StorageTests(unittest.TestCase):
         self.payload['name']='Teste'
         self.payload['scene']['selectedTruckId']='missing'
         self.assertEqual(self.call('POST','/api/layouts',self.payload)[0],422)
+
+    def test_replace_keeps_id_and_updates_scene_and_metadata(self):
+        _,first=self.call('POST','/api/layouts',self.payload)
+        _,other=self.call('POST','/api/layouts',{**self.payload,'name':'Outra'})
+        self.payload['scene']['trucks'][0]['boxes'].append({'id':'b','width':1,'height':1,'depth':1,
+            'x':1,'y':0,'z':0,'color':'#def'})
+        status,replaced=self.call('PUT','/api/layouts/'+first['id'],self.payload)
+        self.assertEqual(status,200)
+        self.assertEqual(replaced['id'],first['id'])
+        self.assertEqual(replaced['box_count'],2)
+        self.assertGreaterEqual(replaced['created_at'],first['created_at'])
+        _,loaded=self.call('GET','/api/layouts/'+first['id'])
+        self.assertEqual(loaded['scene'],self.payload['scene'])
+        _,listing=self.call('GET','/api/layouts')
+        self.assertEqual(len(listing['layouts']),2)
+        self.assertEqual(listing['layouts'][0]['id'],first['id'])  # substituída vai para o topo
+        self.assertEqual(self.call('GET','/api/layouts/'+other['id'])[1]['name'],'Outra')
+
+    def test_replace_missing_or_invalid_changes_nothing(self):
+        self.assertEqual(self.call('PUT','/api/layouts/nao-existe',self.payload)[0],404)
+        _,saved=self.call('POST','/api/layouts',self.payload)
+        broken={**self.payload,'scene':{**self.payload['scene'],'trucks':[{**self.payload['scene']['trucks'][0],'width':-1}]}}
+        self.assertEqual(self.call('PUT','/api/layouts/'+saved['id'],broken)[0],422)
+        self.assertEqual(self.call('GET','/api/layouts/'+saved['id'])[1]['scene'],self.payload['scene'])
+
+    def test_delete_removes_only_that_layout(self):
+        _,first=self.call('POST','/api/layouts',self.payload)
+        _,second=self.call('POST','/api/layouts',self.payload)
+        self.assertEqual(self.call('DELETE','/api/layouts/'+first['id']),(204,None))
+        self.assertEqual(self.call('GET','/api/layouts/'+first['id'])[0],404)
+        self.assertEqual([l['id'] for l in self.call('GET','/api/layouts')[1]['layouts']],[second['id']])
+        self.assertEqual(self.call('DELETE','/api/layouts/'+first['id'])[0],404)
+        self.assertEqual(self.call('DELETE',"/api/layouts/' OR '1'='1")[0],404)
+        self.assertEqual(len(self.call('GET','/api/layouts')[1]['layouts']),1)
 
 
 if __name__=='__main__': unittest.main()

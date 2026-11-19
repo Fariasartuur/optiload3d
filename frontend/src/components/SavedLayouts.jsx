@@ -51,11 +51,34 @@ export default function SavedLayouts({ hasTrucks, getScene, onLoad, onExport, is
     const save = event => {
         event.preventDefault();
         run(async () => {
-            const saved = await api('', { method: 'POST', headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ name: name.trim(), scene: getScene() }) });
-            setLayouts(previous => [saved, ...previous]);
+            const title = name.trim();
+            // Consulta a lista atual para não depender de uma lista desatualizada no modal.
+            const current = (await api()).layouts;
+            const existing = current.find(layout => layout.name.trim().toLocaleLowerCase('pt-BR') === title.toLocaleLowerCase('pt-BR'));
+            setLayouts(current);
+            if (existing && !window.confirm(`Já existe uma organização chamada “${existing.name}”. Substituir pela cena atual?`)) {
+                setMessage('Nada foi salvo. Mude o nome para salvar como uma nova organização.');
+                return;
+            }
+            const body = JSON.stringify({ name: title, scene: getScene() });
+            const headers = { 'Content-Type': 'application/json' };
+            const saved = existing
+                ? await api(`/${encodeURIComponent(existing.id)}`, { method: 'PUT', headers, body })
+                : await api('', { method: 'POST', headers, body });
+            setLayouts(previous => [saved, ...previous.filter(layout => layout.id !== saved.id)]);
             setSelected(saved.id);
-            setMessage(`Organização “${saved.name}” salva no banco.`);
+            setMessage(existing ? `Organização “${saved.name}” substituída no banco.` : `Organização “${saved.name}” salva no banco.`);
+        });
+    };
+
+    const removeSaved = () => {
+        const layout = layouts.find(item => item.id === selected);
+        if (!layout || !window.confirm(`Excluir “${layout.name}” do banco? Essa ação não pode ser desfeita.`)) return;
+        run(async () => {
+            await api(`/${encodeURIComponent(layout.id)}`, { method: 'DELETE' });
+            setLayouts(previous => previous.filter(item => item.id !== layout.id));
+            setSelected('');
+            setMessage(`Organização “${layout.name}” excluída.`);
         });
     };
 
@@ -130,8 +153,9 @@ export default function SavedLayouts({ hasTrucks, getScene, onLoad, onExport, is
                                 </option>)}
                             </select>
                         </label>
-                        <div className={own.row}>
-                            <button type="button" className={styles.toggleButton} disabled={disabled || !selected} onClick={loadSaved}>Abrir do banco</button>
+                        <div className={own.row3}>
+                            <button type="button" className={styles.toggleButton} disabled={disabled || !selected} onClick={loadSaved}>Abrir</button>
+                            <button type="button" className={`${styles.toggleButton} ${own.danger}`} disabled={disabled || !selected} onClick={removeSaved}>Excluir</button>
                             <button type="button" className={styles.toggleButton} disabled={disabled} onClick={() => run(async () => {
                                 const data = await api(); setLayouts(data.layouts); setMessage('Lista atualizada.');
                             })}>Atualizar lista</button>

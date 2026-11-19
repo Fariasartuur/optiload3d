@@ -98,13 +98,15 @@ A resposta inclui static_stability.validated e minimum_base_support=1.0. O paine
 
 O banco SQLite fica em `backend/data/optiload.sqlite3` e é criado automaticamente no primeiro acesso. Não requer dependências adicionais. Para outro disco persistente, configure a variável de ambiente `OPTILOAD_DB_PATH` com o caminho do arquivo. A pasta de dados não entra no Git; para backup, encerre o backend e copie o arquivo SQLite.
 
-A tabela `layouts` contém `id` (UUID, chave primária), `name`, `created_at` (UTC), `schema_version`, `truck_count`, `box_count` e `scene_json`. Cada salvamento cria uma versão independente, sem sobrescrever versões anteriores. O snapshot JSON versionado preserva caminhões, dimensões, caixas orientadas e posicionadas, pesos, prioridades, metadados de diagnóstico, corte visual, estilo e posição/alvo da câmera. Salvar não executa a otimização nem certifica a estabilidade de uma cena editada manualmente.
+A tabela `layouts` contém `id` (UUID, chave primária), `name`, `created_at` (UTC), `schema_version`, `truck_count`, `box_count` e `scene_json`. `POST` sempre cria uma versão independente; substituir uma organização existente é uma ação explícita (`PUT`), e `created_at` passa a ser a data desse novo salvamento. O snapshot JSON versionado preserva caminhões, dimensões, caixas orientadas e posicionadas, pesos, prioridades, metadados de diagnóstico, corte visual, estilo e posição/alvo da câmera. Salvar não executa a otimização nem certifica a estabilidade de uma cena editada manualmente.
 
 Endpoints:
 
 - `POST /api/layouts`: corpo `{ "name": "Minha carga", "scene": { "trucks": [...], "camera": { "position": [15,15,15], "target": [0,0,0] }, "selectedTruckId": "truck-id" } }`. Retorna HTTP 201 e o identificador.
 - `GET /api/layouts`: lista resumos, do mais recente ao mais antigo.
 - `GET /api/layouts/{id}`: recupera uma versão completa; HTTP 404 se inexistente.
+- `PUT /api/layouts/{id}`: mesmo corpo do `POST`; substitui nome e cena mantendo o `id`. HTTP 404 se inexistente; cena inválida retorna 422 sem alterar nada.
+- `DELETE /api/layouts/{id}`: exclui a organização; HTTP 204, ou 404 se inexistente. Não há autenticação: qualquer pessoa com acesso à aplicação pode excluir.
 
 Nomes em branco, IDs duplicados, dimensões inválidas e snapshots maiores que 4 MB são rejeitados. Acesso SQL parametrizado; conexões fechadas por requisição e gravações transacionais. A implementação é para uso local compartilhado, sem contas ou isolamento por usuário.
 
