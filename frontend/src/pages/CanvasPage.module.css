@@ -28,6 +28,7 @@
 
 .floatingButton {
     display: flex;
+    gap: 8px;
     align-items: center;
     justify-content: center;
     position: absolute;
@@ -48,4 +49,8 @@
 
 .floatingButton button:hover {
     background-color: #2e2e34;
+}
+.floatingButton button.toggleOn {
+    border-color: rgba(46, 204, 113, 0.6);
+    color: #4ee08a;
 }
