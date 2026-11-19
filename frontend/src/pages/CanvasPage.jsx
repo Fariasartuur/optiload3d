@@ -1,12 +1,13 @@
-import { useRef, useState } from 'react'
+import { useMemo, useRef, useState } from 'react'
 import { Canvas } from '@react-three/fiber'
 import { OrbitControls, Grid } from '@react-three/drei'
 
 import Container from '../components/Container'
 import CanvasControls from '../components/CanvasControls/CanvasControls'
 import AddTruckModal from '../components/Modal/Truck/AddTruckModal'
+import IdleAutoRotate from '../components/IdleAutoRotate'
 
-import { MdAdd } from "react-icons/md";
+import { MdAdd, Md360 } from "react-icons/md";
 
 import styles from './CanvasPage.module.css'
 
@@ -56,6 +57,13 @@ const CanvasPage = () => {
     const [selectedBoxId, setSelectedBoxId] = useState(null);
 
     const [trucks, setTrucks] = useState([]);
+    const [idleRotate, setIdleRotate] = useState(() => {
+        try { return localStorage.getItem('optiload.idleRotate') !== 'off'; } catch { return true; }
+    });
+    const toggleIdleRotate = () => setIdleRotate(previous => {
+        try { localStorage.setItem('optiload.idleRotate', previous ? 'off' : 'on'); } catch { /* armazenamento indisponível */ }
+        return !previous;
+    });
 
     const [cutoffY, setCutoffY] = useState(0);
 
@@ -183,6 +191,16 @@ const CanvasPage = () => {
 
     const gridSize = calculateGridSize(trucks);
 
+    // Ponto em volta do qual a câmera gira quando parada: o caminhão selecionado ou o centro de todos.
+    const rotationFocus = useMemo(() => {
+        const targets = activeTruck ? [activeTruck] : trucks;
+        if (!targets.length) return null;
+        const xs = targets.flatMap(t => [(t.position?.x || 0) - t.width / 2, (t.position?.x || 0) + t.width / 2]);
+        const zs = targets.flatMap(t => [(t.position?.z || 0) - t.depth / 2, (t.position?.z || 0) + t.depth / 2]);
+        const height = Math.max(...targets.map(t => t.height));
+        return [(Math.min(...xs) + Math.max(...xs)) / 2, height / 2, (Math.min(...zs) + Math.max(...zs)) / 2];
+    }, [activeTruck, trucks]);
+
     return (
         <>
             <div className={styles.container}>
@@ -210,6 +228,7 @@ const CanvasPage = () => {
                     <Canvas gl={{ preserveDrawingBuffer: true }} onCreated={state => { renderRef.current = state; }} camera={{ position: [15, 15, 15], fov: 50 }} onPointerMissed={() => setSelectedTruckId(null)}>
                         <color attach="background" args={['#1e1e24']} />
                         <OrbitControls ref={orbitRef} />
+                        <IdleAutoRotate controlsRef={orbitRef} enabled={idleRotate} focus={rotationFocus} />
 
                         <ambientLight intensity={0.6} />
                         <directionalLight
@@ -255,8 +274,14 @@ const CanvasPage = () => {
                 </div>
 
                 <div className={styles.floatingButton}>
-                    <button onClick={() => setShowAddTruckModal(true)}>
+                    <button onClick={() => setShowAddTruckModal(true)} aria-label="Adicionar caminhão" title="Adicionar caminhão">
                         <MdAdd size={24} />
+                    </button>
+                    <button onClick={toggleIdleRotate} aria-pressed={idleRotate}
+                        className={idleRotate ? styles.toggleOn : undefined}
+                        aria-label="Girar a câmera quando parada"
+                        title={idleRotate ? 'Rotação automática ligada (gira após 5 s parada)' : 'Rotação automática desligada'}>
+                        <Md360 size={24} />
                     </button>
                 </div>
             </div>
