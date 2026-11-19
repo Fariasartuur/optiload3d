@@ -1,0 +1,50 @@
+.modalContent {
+    width: 460px;
+    max-height: calc(100vh - 48px);
+    overflow-y: auto;
+}
+
+.section {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    padding: 12px;
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: 10px;
+    background-color: rgba(255, 255, 255, 0.03);
+}
+
+.sectionTitle {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    margin: 0;
+    color: #f0f0f0;
+    font-size: 0.8rem;
+    font-weight: 600;
+    letter-spacing: 0.02em;
+}
+
+.form {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 8px;
+}
+
+.feedback {
+    min-height: 1.2em;
+    margin: 0;
+}
+
+.openButton {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+}

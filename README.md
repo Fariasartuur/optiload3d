@@ -97,7 +97,7 @@ Acesse `http://localhost:5173`.
 3. **Ajustar propriedades:** peso (kg), ordem de entrega e carga máxima sobre o objeto (kg).
 4. **Organizar:** clique em **Organizar Carga (Auto-Pack)**. Objetos que não couberem ficam listados no painel e entram de novo na próxima tentativa.
 5. **Inspecionar:** arraste para girar, use a roda do mouse para zoom e a barra **Altura de Corte** para ver as camadas internas.
-6. **Salvar/exportar:** em **Salvar e exportar**, dê um nome e clique em **Salvar no banco**; para reabrir, escolha na lista **Organizações salvas** e clique em **Abrir do banco**. Também é possível exportar/abrir a cena em JSON e exportar a vista em PNG.
+6. **Salvar/exportar:** clique em **Salvar / Exportar** no topo do painel lateral. No modal, dê um nome e clique em **Salvar no banco**; para reabrir, escolha na lista **Organizações salvas** e clique em **Abrir do banco**. Também é possível exportar/abrir a cena em JSON e exportar a vista em PNG.
 
 ## 📦 Cargas de exemplo
 
